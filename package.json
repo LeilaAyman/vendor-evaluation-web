@@ -1,0 +1,25 @@
+{
+  "name": "vendor-evaluation-web",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LeilaAyman/vendor-evaluation-web.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/LeilaAyman/vendor-evaluation-web/issues"
+  },
+  "homepage": "https://github.com/LeilaAyman/vendor-evaluation-web#readme",
+  "dependencies": {
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-scripts": "^5.0.1"
+  }
+}

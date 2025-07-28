@@ -1,0 +1,68 @@
+/* Pre.css - Google Forms Inspired */
+
+.pre-form-container {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  max-width: 800px;
+  margin: 40px auto;
+  font-family: "Segoe UI", sans-serif;
+}
+
+.pre-form-container h2 {
+  font-size: 24px;
+  color: #2c3e50;
+  margin-bottom: 30px;
+}
+
+.pre-question {
+  margin-bottom: 40px;
+}
+
+.pre-question label {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  display: block;
+  margin-bottom: 15px;
+}
+
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-left: 20px;
+}
+
+.radio-group label {
+  font-weight: normal;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  color: #444;
+}
+
+.radio-group input[type="radio"] {
+  transform: scale(1.2);
+  accent-color: #4caf50;
+}
+
+.proceed-btn {
+  margin-top: 40px;
+  width: 100%;
+  padding: 14px;
+  background-color: #4caf50;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.proceed-btn:hover {
+  background-color: #43a047;
+}

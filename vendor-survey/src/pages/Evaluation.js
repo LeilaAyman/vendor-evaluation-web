@@ -1,45 +1,53 @@
-import { useState } from "react";
-import { collection, addDoc } from "firebase/firestore";
+import { useEffect, useState } from "react";
+import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
+import { useNavigate } from "react-router-dom";
 
 function Evaluation() {
-  const [name, setName] = useState("");
-  const [vendor, setVendor] = useState("");
-  const [feedback, setFeedback] = useState("");
+  const [vendors, setVendors] = useState([]);
+  const [selectedVendor, setSelectedVendor] = useState("");
+  const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await addDoc(collection(db, "vendorFeedback"), {
-        name,
-        vendor,
-        feedback,
-        createdAt: new Date(),
-      });
-      alert("✅ Feedback submitted successfully!");
-      setName("");
-      setVendor("");
-      setFeedback("");
-    } catch (error) {
-      alert("❌ Error submitting feedback: " + error.message);
+  useEffect(() => {
+    const fetchVendors = async () => {
+      const querySnapshot = await getDocs(collection(db, "vendors"));
+      const vendorList = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setVendors(vendorList);
+    };
+    fetchVendors();
+  }, []);
+
+  const handlePreQualify = () => {
+    if (selectedVendor) {
+      navigate(`/prequalification?vendor=${encodeURIComponent(selectedVendor)}`);
     }
   };
 
   return (
     <div className="page">
-      <h2>Vendor Insight Survey</h2>
-      <form onSubmit={handleSubmit}>
-        <label>Your Name:</label>
-        <input type="text" value={name} onChange={(e) => setName(e.target.value)} required />
+      <h2>Vendor Evaluation Setup</h2>
 
-        <label>Vendor Name:</label>
-        <input type="text" value={vendor} onChange={(e) => setVendor(e.target.value)} required />
+      <label>Select a Vendor:</label>
+      <select
+        value={selectedVendor}
+        onChange={(e) => setSelectedVendor(e.target.value)}
+      >
+        <option value="">-- Choose Vendor --</option>
+        {vendors.map((vendor) => (
+          <option key={vendor.id} value={vendor.name}>
+            {vendor.name}
+          </option>
+        ))}
+      </select>
 
-        <label>Feedback:</label>
-        <textarea value={feedback} onChange={(e) => setFeedback(e.target.value)} required />
-
-        <button type="submit" className="submit-btn">Submit Feedback</button>
-      </form>
+      {selectedVendor && (
+        <button onClick={handlePreQualify} className="submit-btn" style={{ marginTop: "20px" }}>
+          Proceed to Pre-Qualification
+        </button>
+      )}
     </div>
   );
 }

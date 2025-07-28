@@ -4,6 +4,10 @@ import Dashboard from "./pages/Dashboard";
 import Evaluation from "./pages/Evaluation";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
+import PreQualification from "./pages/PreQualification"; // New import
+import EvaluationForm from "./pages/EvaluationForm"; // 
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 
 function App() {
   return (
@@ -21,6 +25,8 @@ function App() {
         <div className="main-content">
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/prequalification" element={<PreQualification />} /> {/* ✅ New route */}
+            <Route path="/evaluationform" element={<EvaluationForm />} />
             <Route path="/evaluation" element={<Evaluation />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/login" element={<Login />} />
