@@ -2,12 +2,12 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { doc, getDoc, collection, getDocs } from "firebase/firestore";
 import { db } from "../../firebase";
-import "../cssFiles/PreQualification.css"
+import "../cssFiles/PreQualification.css";
 
 function PreQualification() {
   const [params] = useSearchParams();
   const vendorId = params.get("vendorId");
-  const VendorName= params.get("vendor");
+  const VendorName = params.get("vendor");
   const index = parseInt(params.get("index") || "0", 10);
   const navigate = useNavigate();
 
@@ -51,18 +51,17 @@ function PreQualification() {
     navigate(`/evaluationform?vendorId=${vendorId}&vendor=${encodeURIComponent(vendor.name)}&index=${index}`);
   };
 
- const proceedToNext = () => {
-  const nextIndex = index + 1;
-  const nextVendor = allVendors[nextIndex];
+  const proceedToNext = () => {
+    const nextIndex = index + 1;
+    const nextVendor = allVendors[nextIndex];
 
-  if (nextVendor) {
-    navigate(`/prequalification?vendorId=${nextVendor.id}&vendor=${encodeURIComponent(nextVendor.name)}&index=${nextIndex}`);
-  } else {
-    alert("✅ All vendors evaluated.");
-    navigate("/dashboard");
-  }
-};
-
+    if (nextVendor) {
+      navigate(`/prequalification?vendorId=${nextVendor.id}&vendor=${encodeURIComponent(nextVendor.name)}&index=${nextIndex}`);
+    } else {
+      alert("✅ All vendors evaluated.");
+      navigate("/dashboard");
+    }
+  };
 
   if (!vendor) return <div>Loading...</div>;
 
@@ -73,25 +72,25 @@ function PreQualification() {
         <div className="sidebar-step">
           <span>🟣</span>
           <div>
-            <p>How did you first learn about our product?</p>
+            <p>Monopoly Check</p>
           </div>
         </div>
         <div className="sidebar-step">
           <span>🟣</span>
           <div>
-            <p>How likely are you to recommend our product to a friend or colleague?</p>
+            <p>Legal Compliance</p>
           </div>
         </div>
       </div>
 
       <div className="pre-eval-content">
-        <h5 className="vendor-title">{VendorName} pre-evaluation</h5>
+        <h5 className="vendor-title">{VendorName} Pre-Qualification</h5>
 
         <form onSubmit={handleSubmit}>
           <label className="question-label">
             Does this vendor operate as the sole provider (monopoly) for the required solution or service in Egypt or globally?
             <br />
-            <span className="subtext">If yes, please specify an alternative or a suggestion if possible</span>
+            <span className="subtext">If yes, please specify an alternative or a suggestion if possible.</span>
           </label>
 
           <div className="btn-group">
@@ -100,14 +99,14 @@ function PreQualification() {
               className={`choice-btn ${monopoly === "yes" ? "selected" : ""}`}
               onClick={() => setMonopoly("yes")}
             >
-              yes
+              Yes
             </button>
             <button
               type="button"
               className={`choice-btn ${monopoly === "no" ? "selected" : ""}`}
               onClick={() => setMonopoly("no")}
             >
-              no
+              No
             </button>
           </div>
 
@@ -120,11 +119,26 @@ function PreQualification() {
             />
           )}
 
-          {/* Hidden Legal Placeholder for future */}
           <input type="hidden" value="yes" onChange={(e) => setLegal(e.target.value)} />
 
-          <div className="action-btn">
+          <div className="action-btns">
             <button type="submit" className="next-btn">Next</button>
+            <button
+              type="button"
+              onClick={() => navigate("/dashboard")}
+              className="exit-btn"
+              style={{
+                marginLeft: "20px",
+                backgroundColor: "#e74c3c",
+                color: "#fff",
+                padding: "10px 20px",
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer"
+              }}
+            >
+              Exit to Dashboard
+            </button>
           </div>
         </form>
       </div>
