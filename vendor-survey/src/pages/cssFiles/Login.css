@@ -1,0 +1,95 @@
+.login-container {
+  display: flex;
+  height: 100vh;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.left-panel {
+  background-color: #f4f4f4;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px; /* Optional for spacing */
+}
+
+
+.logo {
+  width: auto;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+
+
+.tagline {
+  font-weight: bold;
+  color: #555;
+}
+
+.right-panel {
+  flex: 1;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.login-form {
+  max-width: 400px;
+  width: 100%;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  background-color: #f1f1f1;
+  height: 48px; /* Match the login button height */
+  margin-bottom: 20px;
+  border-radius: 6px;
+  padding: 0 12px; /* Horizontal padding only */
+}
+
+.input-group input {
+  flex: 1;
+  height: 100%; /* Fill the full height of the container */
+  border: none;
+  outline: none;
+  background: transparent;
+  padding-left: 10px;
+  font-size: 1em;
+}
+
+
+.icon {
+  margin-right: 10px;
+  font-size: 1.2em;
+}
+
+.toggle {
+  cursor: pointer;
+}
+
+.options {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  font-size: 0.9em;
+}
+
+.login-button {
+  width: 100%;
+  padding: 12px;
+  background-color: #5a42cc;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1em;
+  cursor: pointer;
+}
+
+.register-link {
+  margin-top: 20px;
+  text-align: center;
+}

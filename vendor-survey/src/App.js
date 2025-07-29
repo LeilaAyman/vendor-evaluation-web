@@ -1,11 +1,15 @@
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import "./App.css";
-import Dashboard from "./pages/Dashboard";
-import Evaluation from "./pages/Evaluation";
-import Profile from "./pages/Profile";
-import Login from "./pages/Login";
-import PreQualification from "./pages/PreQualification"; // New import
-import EvaluationForm from "./pages/EvaluationForm"; // 
+import Dashboard from "./pages/jsFiles/Dashboard";
+import Evaluation from "./pages/jsFiles/Evaluation";
+import Evaluate from "./pages/jsFiles/Evaluate";
+import Profile from "./pages/jsFiles/Profile";
+import Login from "./pages/jsFiles/Login";
+import Register from "./pages/jsFiles/Register";
+import PreQualification from "./pages/jsFiles/PreQualification"; // New import
+import EvaluationFlow from "./pages/jsFiles/VendorFlow";
+import EvaluationForm from "./pages/jsFiles/EvaluationForm"; // 
+import EvaluationIntro from "./pages/jsFiles/EvaluationIntro"; // 
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 
@@ -13,23 +17,20 @@ function App() {
   return (
     <Router>
       <div className="app-container">
-        <div className="sidebar">
-          <div className="sidebar-content">
-            <Link to="/"><button className="sidebar-btn">🏠 Dashboard</button></Link>
-            <Link to="/evaluation"><button className="sidebar-btn">📝 Evaluation</button></Link>
-            <Link to="/profile"><button className="sidebar-btn">👤 Profile</button></Link>
-            <Link to="/login"><button className="sidebar-btn">🔑 Login</button></Link>
-          </div>
-        </div>
 
         <div className="main-content">
           <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/prequalification" element={<PreQualification />} /> {/* ✅ New route */}
+            <Route path="/" element={<Login />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/evaluationflow" element={<EvaluationFlow />} />
+            <Route path="/prequalification" element={<PreQualification />} />
             <Route path="/evaluationform" element={<EvaluationForm />} />
+            <Route path="/evaluate" element={<Evaluate />} />
             <Route path="/evaluation" element={<Evaluation />} />
             <Route path="/profile" element={<Profile />} />
-            <Route path="/login" element={<Login />} />
+            <Route path="/evaluation_intro" element={<EvaluationIntro />} />
           </Routes>
         </div>
       </div>

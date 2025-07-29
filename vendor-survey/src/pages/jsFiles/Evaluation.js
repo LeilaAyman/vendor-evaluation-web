@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
-import { db } from "../firebase";
+import { db } from "../../firebase.js";
 import { useNavigate } from "react-router-dom";
 
 function Evaluation() {
