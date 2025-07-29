@@ -1,0 +1,137 @@
+.eval-wrapper {
+  display: flex;
+  min-height: 100vh;
+  background: #f8f8f8;
+  font-family: Arial, sans-serif;
+}
+
+.eval-sidebar {
+  width: 300px;
+  background: #512da8;
+  color: white;
+  padding: 30px 20px;
+}
+
+.logo {
+  width: 150px;
+  margin-bottom: 40px;
+}
+
+.sidebar-step {
+  background: #fff;
+  color: #000;
+  padding: 10px 15px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  font-size: 14px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.sidebar-step span {
+  background: #6a1b9a;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 50%;
+  font-size: 12px;
+}
+
+.sidebar-step.active {
+  background: #d1c4e9;
+}
+
+.eval-content {
+  flex: 1;
+  padding: 60px;
+}
+
+.vendor-title {
+  color: #512da8;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.question-number {
+  font-size: 28px;
+  font-weight: bold;
+  color: #512da8;
+}
+
+.question-text {
+  font-size: 22px;
+  margin: 20px 0;
+}
+
+.score-options {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 40px; /* spacing between the buttons */
+  flex-wrap: nowrap; /* <-- this prevents wrapping */
+  margin: 30px 0;
+}
+
+.score-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 60px; /* ensure equal width */
+}
+
+.score-circle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: 20px;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.2s ease;
+}
+
+.score-circle:hover {
+  transform: scale(1.1);
+}
+
+.score-1 { background-color: #e74c3c; }
+.score-2 { background-color: #f39c12; }
+.score-3 { background-color: #f1c40f; }
+.score-4 { background-color: #2ecc71; }
+.score-5 { background-color: #27ae60; }
+
+.score-label {
+  margin-top: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  color: #333;
+}
+
+.score-label.left {
+  color: red;
+}
+
+.score-label.right {
+  color: green;
+}
+
+
+
+.action-btn {
+  text-align: right;
+  margin-top: 30px;
+}
+
+.next-btn {
+  background-color: #512da8;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
