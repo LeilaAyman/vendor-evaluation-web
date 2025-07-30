@@ -18,22 +18,58 @@ function EvaluationForm() {
   const [vendors, setVendors] = useState([]);
 
   useEffect(() => {
-    const hardcodedQuestions = [
-      { id: "q1", text: "How would you rate the vendor’s responsiveness?" },
-      { id: "q2", text: "How satisfied are you with the vendor’s technical support?" },
-      { id: "q3", text: "Rate the vendor's adherence to deadlines." },
-      { id: "q4", text: "How likely are you to continue working with this vendor?" },
-      { id: "q5", text: "Overall, how would you score the vendor’s performance?" }
-    ];
+    const fetchQuestionsAndVendors = async () => {
+      try {
+        const existingSnap = await getDocs(
+          collection(db, "existing questions")
+        );
+        const existingQuestions = existingSnap.docs.map((doc, idx) => ({
+          id: doc.id,
+          text: doc.data().question,
+          weight: doc.data().weight || 1,
+          criteria: doc.data().criteria || "Uncategorized", // ✅ Make sure it's not undefined
+          source: "existing",
+          order: idx,
+        }));
 
-    setQuestions(hardcodedQuestions);
+        const allSnap = await getDocs(collection(db, "existing_and_new"));
+        const allQuestions = allSnap.docs.map((doc, idx) => ({
+          id: doc.id,
+          text: doc.data().question,
+          weight: doc.data().weight || 1,
+          criteria: doc.data().criteria || "Uncategorized",
+          source: "existing_and_new",
+          order: existingQuestions.length + idx,
+        }));
 
-    const fetchVendors = async () => {
-      const vs = await getDocs(collection(db, "vendors"));
-      setVendors(vs.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+        const combined = [...existingQuestions, ...allQuestions];
+
+        // ✅ Group by criteria
+        const grouped = combined.reduce((acc, q) => {
+          const key = q.criteria;
+          acc[key] = acc[key] || [];
+          acc[key].push(q);
+          return acc;
+        }, {});
+
+        // ✅ Optional: sort criteria alphabetically
+        const sortedGrouped = Object.entries(grouped).sort(([a], [b]) =>
+          a.localeCompare(b)
+        );
+
+        const finalQuestions = sortedGrouped.flatMap(([_, qs]) => qs);
+
+        setQuestions(finalQuestions); // ✅ Only keep this!
+
+        // Fetch vendors
+        const vs = await getDocs(collection(db, "vendors"));
+        setVendors(vs.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+      } catch (err) {
+        console.error("Error loading data:", err);
+      }
     };
 
-    fetchVendors();
+    fetchQuestionsAndVendors();
   }, []);
 
   const handleScore = (score) => {
@@ -52,7 +88,11 @@ function EvaluationForm() {
     const nextVendor = vendors[nextIndex];
 
     if (nextVendor) {
-      navigate(`/prequalification?vendorId=${nextVendor.id}&vendor=${encodeURIComponent(nextVendor.name)}&index=${nextIndex}`);
+      navigate(
+        `/prequalification?vendorId=${
+          nextVendor.id
+        }&vendor=${encodeURIComponent(nextVendor.name)}&index=${nextIndex}`
+      );
     } else {
       alert("✅ All vendors evaluated.");
       navigate("/dashboard");
@@ -67,7 +107,10 @@ function EvaluationForm() {
       <div className="eval-sidebar">
         <img src="/images/iscore-logo.png" alt="logo" className="logo" />
         {questions.map((q, i) => (
-          <div key={q.id} className={`sidebar-step ${i === current ? "active" : ""}`}>
+          <div
+            key={q.id}
+            className={`sidebar-step ${i === current ? "active" : ""}`}
+          >
             <span>{i + 1}</span>
             <p>{q.text}</p>
           </div>
@@ -76,8 +119,11 @@ function EvaluationForm() {
 
       <div className="eval-content">
         <h5 className="vendor-title">{vendorName}</h5>
+        <h5 className="criteria-label">{currentQuestion.criteria}</h5>
 
-        <p className="question-number">Question {current + 1} of {questions.length}</p>
+        <p className="question-number">
+          Question {current + 1} of {questions.length}
+        </p>
         <h3 className="question-text">{currentQuestion.text}</h3>
 
         <div className="score-options">
@@ -90,7 +136,9 @@ function EvaluationForm() {
                 {score}
               </button>
               {(score === 1 || score === 5) && (
-                <div className={`score-label ${score === 1 ? "left" : "right"}`}>
+                <div
+                  className={`score-label ${score === 1 ? "left" : "right"}`}
+                >
                   {score === 1 ? "Poor" : "Excellent"}
                 </div>
               )}
@@ -98,7 +146,14 @@ function EvaluationForm() {
           ))}
         </div>
 
-        <div className="action-btn" style={{ display: "flex", justifyContent: "space-between", marginTop: "30px" }}>
+        <div
+          className="action-btn"
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginTop: "30px",
+          }}
+        >
           <button
             onClick={() => navigate("/dashboard")}
             style={{
@@ -107,7 +162,7 @@ function EvaluationForm() {
               color: "white",
               border: "none",
               borderRadius: "5px",
-              cursor: "pointer"
+              cursor: "pointer",
             }}
           >
             ← Back to Dashboard
@@ -123,7 +178,8 @@ function EvaluationForm() {
               color: "white",
               border: "none",
               borderRadius: "5px",
-              cursor: current !== questions.length - 1 ? "not-allowed" : "pointer"
+              cursor:
+                current !== questions.length - 1 ? "not-allowed" : "pointer",
             }}
           >
             {current === questions.length - 1 ? "Finish Evaluation" : "Next"}

@@ -13,16 +13,16 @@ function EvaluationIntro() {
   }
 
   return (
-    <div className="register-page-wrapper">
+    
+
+      <div className="evaluation-page">
+        <div className="evaluation-container">
+          <div className="evaluation-header">
       <div className="left-header">
         <div className="back-button" onClick={goBack}>
           ← Back
         </div>
       </div>
-
-      <div className="evaluation-wrapper">
-        <div className="evaluation-container">
-          <div className="evaluation-header">
             <img src="/images/iscore-logo.png" alt="Iscore Logo" className="evaluation-logo" />
           </div>
 
@@ -36,7 +36,7 @@ function EvaluationIntro() {
             </button>
           </div>
         </div>
-      </div>
+      
     </div>
   );
 }

@@ -36,10 +36,10 @@ function Dashboard() {
         <div className="dashboard-buttons">
           <div className="dashboard-card" onClick={() => navigate("/evaluation_intro")}>
             <span className="card-icon">✏️</span>
-            <span className="card-text">Quarterly Vendor Evaluation</span>
+            <span className="card-text">Existing Vendor Evaluation</span>
           </div>
 
-          <div className="dashboard-card" onClick={() => navigate("/score")}>
+          <div className="dashboard-card-purple" onClick={() => navigate("/score")}>
             <span className="card-icon">📊</span>
             <span className="card-text">New Vendor Evaluation</span>
           </div>
