@@ -77,7 +77,7 @@ function EvaluationForm() {
       <div className="eval-content">
         <h5 className="vendor-title">{vendorName}</h5>
 
-        <p className="question-number">{current + 1}</p>
+        <p className="question-number">Question {current + 1} of {questions.length}</p>
         <h3 className="question-text">{currentQuestion.text}</h3>
 
         <div className="score-options">
@@ -98,11 +98,33 @@ function EvaluationForm() {
           ))}
         </div>
 
-        <div className="action-btn">
+        <div className="action-btn" style={{ display: "flex", justifyContent: "space-between", marginTop: "30px" }}>
+          <button
+            onClick={() => navigate("/dashboard")}
+            style={{
+              padding: "10px 20px",
+              backgroundColor: "#e74c3c",
+              color: "white",
+              border: "none",
+              borderRadius: "5px",
+              cursor: "pointer"
+            }}
+          >
+            ← Back to Dashboard
+          </button>
+
           <button
             className="next-btn"
             onClick={proceedToNextVendor}
             disabled={current !== questions.length - 1}
+            style={{
+              padding: "10px 20px",
+              backgroundColor: "#2ecc71",
+              color: "white",
+              border: "none",
+              borderRadius: "5px",
+              cursor: current !== questions.length - 1 ? "not-allowed" : "pointer"
+            }}
           >
             {current === questions.length - 1 ? "Finish Evaluation" : "Next"}
           </button>
