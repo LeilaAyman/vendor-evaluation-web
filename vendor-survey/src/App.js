@@ -10,6 +10,8 @@ import PreQualification from "./pages/jsFiles/PreQualification"; // New import
 import EvaluationFlow from "./pages/jsFiles/VendorFlow";
 import EvaluationForm from "./pages/jsFiles/EvaluationForm"; // 
 import EvaluationIntro from "./pages/jsFiles/EvaluationIntro"; // 
+import Report from "./pages/jsFiles/Report"; // New import
+import ScorePage from "./pages/jsFiles/ScorePage"; // New import
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 
@@ -27,6 +29,8 @@ function App() {
             <Route path="/evaluationflow" element={<EvaluationFlow />} />
             <Route path="/prequalification" element={<PreQualification />} />
             <Route path="/evaluationform" element={<EvaluationForm />} />
+            <Route path="/Report" element={<Report />} />
+            <Route path="/ScorePage" element={<ScorePage />} />
             <Route path="/evaluate" element={<Evaluate />} />
             <Route path="/evaluation" element={<Evaluation />} />
             <Route path="/profile" element={<Profile />} />
