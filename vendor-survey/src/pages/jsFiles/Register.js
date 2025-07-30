@@ -1,20 +1,25 @@
 import { useState } from "react";
 import "../cssFiles/Register.css";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { getFirestore, doc, setDoc } from "firebase/firestore";
 import { app } from "../../firebase.js";
 import { useNavigate } from "react-router-dom";
 
+// Firebase services
 const auth = getAuth(app);
+const db = getFirestore(app);
 
 function Register() {
   const [name, setName] = useState("");
-  const [employeeId, setEmployeeId] = useState("");
+  const [department, setDepartment] = useState("");
+  const [type, setType] = useState("employee"); // NEW: default to employee
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
+
   const goBack = () => {
     navigate("/login");
   };
@@ -27,7 +32,18 @@ function Register() {
     }
 
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+
+      // Save user info to Firestore
+      await setDoc(doc(db, "users", userCredential.user.uid), {
+        name,
+        email,
+        department,
+        type, // NEW
+        uid: userCredential.user.uid,
+        createdAt: new Date(),
+      });
+
       alert("✅ Account created successfully!");
       navigate("/login");
     } catch (error) {
@@ -40,94 +56,109 @@ function Register() {
       <div className="back-button" onClick={goBack}>
         ← Back
       </div>
-    <div className="register-container">
-      <div className="left-panel">
-        <img src="/images/iscore-logo.png" alt="Iscore Logo" className="logo" />
+
+      <div className="register-container">
+        <div className="left-panel">
+          <img src="/images/iscore-logo.png" alt="Iscore Logo" className="logo" />
+        </div>
+
+
+        <div className="right-panel">
+          <h2>Create an account</h2>
+          <form className="register-form" onSubmit={handleRegister}>
+            <div className="input-group">
+              <span className="icon">👤</span>
+              <input
+                type="text"
+                placeholder="example example"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+
+            <div className="input-group">
+              <span className="icon">📧</span>
+              <input
+                type="email"
+                placeholder="example@gmail.com"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+
+            <div className="input-group">
+              <span className="icon">🔑</span>
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <span
+                className="toggle"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{ cursor: "pointer" }}
+              >
+                👁️
+              </span>
+            </div>
+
+            <div className="input-group">
+              <span className="icon">🔑</span>
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Confirm Password"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+              <span
+                className="toggle"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{ cursor: "pointer" }}
+              >
+                👁️
+              </span>
+            </div>
+
+            <div className="input-group">
+              <span className="icon">🏢</span>
+              <input
+                type="text"
+                placeholder="Department (e.g. HR, IT)"
+                required
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+              />
+            </div>
+
+            {/* NEW: Type Dropdown */}
+            <div className="input-group">
+              <span className="icon">👥</span>
+              <select
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+                required
+              >
+                <option value="employee">Employee</option>
+                <option value="manager">Manager</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+
+            <button type="submit" className="register-button">
+              Create Account
+            </button>
+
+            <p className="login-link">
+              Already have an account? <a href="/login">login</a>
+            </p>
+          </form>
+        </div>
       </div>
-
-      <div className="right-panel">
-        <h2>Create an account</h2>
-
-        <form className="register-form" onSubmit={handleRegister}>
-          <div className="input-group">
-            <span className="icon">👤</span>
-            <input
-              type="text"
-              placeholder="example example"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </div>
-
-          <div className="input-group">
-            <span className="icon">📧</span>
-            <input
-              type="email"
-              placeholder="example@gmail.com"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-
-          <div className="input-group">
-            <span className="icon">🔑</span>
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <span
-              className="toggle"
-              onClick={() => setShowPassword(!showPassword)}
-              style={{ cursor: "pointer" }}
-            >
-              👁️
-            </span>
-          </div>
-
-          <div className="input-group">
-            <span className="icon">🔑</span>
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Confirm Password"
-              required
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
-            <span
-              className="toggle"
-              onClick={() => setShowPassword(!showPassword)}
-              style={{ cursor: "pointer" }}
-            >
-              👁️
-            </span>
-          </div>
-
-          <div className="input-group">
-            <span className="icon">🆔</span>
-            <input
-              type="text"
-              placeholder="S123456"
-              required
-              value={employeeId}
-              onChange={(e) => setEmployeeId(e.target.value)}
-            />
-          </div>
-
-          <button type="submit" className="register-button">
-            Create Account
-          </button>
-
-          <p className="login-link">
-            Already have an account? <a href="/login">login</a>
-          </p>
-        </form>
-      </div>
-    </div>
     </div>
   );
 }

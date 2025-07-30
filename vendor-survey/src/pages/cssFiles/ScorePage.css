@@ -1,0 +1,51 @@
+.score-wrapper {
+  padding: 2rem;
+  background-color: #fdf9f9;
+  min-height: 100vh;
+}
+
+.score-container {
+  background: white;
+  border-radius: 15px;
+  padding: 2rem;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+}
+
+.score-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.score-logo {
+  width: 140px;
+}
+
+.back-arrow {
+  font-size: 1.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.score-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.score-table th,
+.score-table td {
+  padding: 1rem;
+  text-align: center;
+  font-size: 1rem;
+}
+
+.report-btn {
+  background: none;
+  border: 2px solid;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+}
