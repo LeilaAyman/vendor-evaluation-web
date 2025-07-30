@@ -1,20 +1,16 @@
-.dashboard-wrapper {
-  background-color: #3f2b96;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
 
 .dashboard-container {
   background-color: #faf6f6;
   border-radius: 12px;
-  padding: 40px 60px;
+  padding: 60px 80px;
   box-shadow: 0 0 10px #00c6ff;
-  width: 85%;
-  max-width: 900px;
+  width: 95%;
+  max-width: 2000px;
+  min-height: 620px; 
   position: relative;
 }
+
+
 
 .dashboard-header {
   display: flex;
@@ -41,20 +37,44 @@
 
 .dashboard-buttons {
   display: flex;
-  justify-content: center;
-  gap: 80px;
+  flex-direction: row;        /* Keep them side by side */
+  justify-content: center;    /* Center horizontally */
+  align-items: center;        /* Center vertically if needed */
+  gap: 80px;                  /* Space between cards */
+  flex-wrap: wrap;            /* Allow wrapping on small screens */
+  margin-top: 120px;           /* Optional spacing from header */
 }
 
+
 .dashboard-card {
-  background-color: #5c3dac;
-  padding: 30px 40px;
-  border-radius: 12px;
+  background-color: #3CBFC1;
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
   color: #fff;
   text-align: center;
   cursor: pointer;
-  width: 200px;
   transition: transform 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
+.dashboard-card-purple {
+  background-color: #4F3795;
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  color: #fff;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
 
 .dashboard-card:hover {
   transform: scale(1.05);

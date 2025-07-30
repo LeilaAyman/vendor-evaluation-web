@@ -1,9 +1,11 @@
-.evaluation-wrapper {
-  background-color: #3f2b96;
-  min-height: 100vh;
+
+.evaluation-page {
   display: flex;
   justify-content: center;
   align-items: center;
+  height: 80vh;      /* Full viewport height */
+  width: 80vw;       /* Full viewport width */
+  background-color: #4b3394; /* Match your purple background */
 }
 
 .evaluation-container {

@@ -46,7 +46,7 @@ function Dashboard() {
             <span className="card-text">Evaluate Vendor</span>
           </div>
 
-          <div className="dashboard-card" onClick={() => navigate("/score")}>
+          <div className="dashboard-card-purple" onClick={() => navigate("/score")}>
             <span className="card-icon">📊</span>
             <span className="card-text">Check Vendor Score</span>
           </div>
