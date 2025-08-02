@@ -1,0 +1,64 @@
+
+.selection-wrapper {
+  max-width: 600px;
+  margin: 100px auto;
+  padding: 30px;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.selection-wrapper h2 {
+  margin-bottom: 25px;
+  color: #333;
+  font-size: 26px;
+  font-weight: 600;
+}
+
+.selection-wrapper select {
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 25px;
+  font-size: 16px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.button-group {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.selection-wrapper .start-btn,
+.selection-wrapper .exit-btn {
+  flex: 1;
+  padding: 12px 18px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.selection-wrapper .start-btn {
+  background-color: #5e60ce;
+  color: white;
+}
+
+.selection-wrapper .exit-btn {
+  background-color: #f44336;
+  color: white;
+}
+
+.selection-wrapper .start-btn:hover {
+  background-color: #4b4dbf;
+}
+
+.selection-wrapper .exit-btn:hover {
+  background-color: #d32f2f;
+}
