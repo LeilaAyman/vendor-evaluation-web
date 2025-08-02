@@ -9,7 +9,7 @@ function EvaluationIntro() {
     navigate("/evaluate");
   };
   const startEvaluation =()=>{
-    navigate("/evaluationflow");
+    navigate("/select-vendor");
   }
 
   return (
