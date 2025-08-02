@@ -14,6 +14,9 @@ import Report from "./pages/jsFiles/Report"; // New import
 import VendorSelection from "./pages/jsFiles/vendorSelection"; // New import
 import ScorePage from "./pages/jsFiles/ScorePage"; // New import
 import 'bootstrap/dist/css/bootstrap.min.css';
+import EvaluationSettings from "./pages/jsFiles/EvaluationSettings"; // Adjust path if needed
+
+
 
 
 function App() {
@@ -31,6 +34,7 @@ function App() {
             <Route path="/prequalification" element={<PreQualification />} />
             <Route path="/evaluationform" element={<EvaluationForm />} />
             <Route path="/Report" element={<Report />} />
+            <Route path="/evaluation-settings" element={<EvaluationSettings />} />
             <Route path="/ScorePage" element={<ScorePage />} />
             <Route path="/evaluate" element={<Evaluate />} />
             <Route path="/evaluation" element={<Evaluation />} />
