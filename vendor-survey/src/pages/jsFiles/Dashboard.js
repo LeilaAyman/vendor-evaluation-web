@@ -107,10 +107,17 @@ function Dashboard() {
             </div>
 
             {isAdmin && (
-              <div className="dashboard-card" onClick={() => navigate("/evaluation-settings")}>
-                <span className="card-icon">⚙️</span>
-                <span className="card-text">Manage Evaluation Period</span>
-              </div>
+              <>
+                <div className="dashboard-card" onClick={() => navigate("/evaluation-settings")}>
+                  <span className="card-icon">⚙️</span>
+                  <span className="card-text">Manage Evaluation Period</span>
+                </div>
+
+                <div className="dashboard-card" onClick={() => navigate("/AccessControl")}>
+                  <span className="card-icon">🧑‍💼</span>
+                  <span className="card-text">Manage User Access</span>
+                </div>
+              </>
             )}
           </div>
         </div>

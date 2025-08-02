@@ -1,0 +1,72 @@
+.access-control-wrapper {
+  background: linear-gradient(to bottom right, #ffffff, #f2f4ff);
+  border-radius: 16px;
+  padding: 50px 60px;
+  box-shadow: 0 0 30px rgba(79, 55, 149, 0.2);
+  max-width: 1400px;
+  margin: 40px auto;
+  font-family: 'Segoe UI', sans-serif;
+  transition: all 0.3s ease-in-out;
+}
+
+.access-control-wrapper h2 {
+  font-size: 32px;
+  font-weight: bold;
+  color: #4F3795;
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.access-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 15px;
+}
+
+.access-table th {
+  background-color: #4F3795;
+  color: #fff;
+  padding: 16px 20px;
+  text-align: left;
+  font-size: 16px;
+  font-weight: 600;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+.access-table td {
+  background-color: #fff;
+  padding: 18px 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+  font-size: 15px;
+  color: #333;
+  vertical-align: middle;
+}
+
+.access-table input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: #3CBFC1;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .access-control-wrapper {
+    padding: 30px 20px;
+  }
+
+  .access-control-wrapper h2 {
+    font-size: 24px;
+  }
+
+  .access-table th, .access-table td {
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  .access-table input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+  }
+}

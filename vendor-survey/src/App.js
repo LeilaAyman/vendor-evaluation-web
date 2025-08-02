@@ -15,6 +15,7 @@ import VendorSelection from "./pages/jsFiles/vendorSelection"; // New import
 import ScorePage from "./pages/jsFiles/ScorePage"; // New import
 import 'bootstrap/dist/css/bootstrap.min.css';
 import EvaluationSettings from "./pages/jsFiles/EvaluationSettings"; // Adjust path if needed
+import AccessControl from "./pages/jsFiles/AccessControl"; // New import
 
 
 
@@ -41,6 +42,7 @@ function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/select-vendor" element={<VendorSelection />} />
             <Route path="/evaluation_intro" element={<EvaluationIntro />} />
+            <Route path="/AccessControl" element={<AccessControl />} />
           </Routes>
         </div>
       </div>
