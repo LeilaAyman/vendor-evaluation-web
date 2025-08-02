@@ -49,7 +49,7 @@ function Dashboard() {
             </div>
 
             <div
-              className="dashboard-card-purple"
+              className="dashboard-card"
               onClick={() => navigate("/ScorePage")} // ✅ Updated route
             >
               <span className="card-icon">📊</span>

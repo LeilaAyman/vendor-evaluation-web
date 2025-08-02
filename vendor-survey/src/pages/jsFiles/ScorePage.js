@@ -16,10 +16,10 @@ const getScoreColor = (score) => {
 };
 
 const dummyVendors = [
-  { id: "01", name: "Home Decor Range", score: 45 },
-  { id: "02", name: "Disney Princess Pink Bag 18'", score: 72 },
-  { id: "03", name: "Bathroom Essentials", score: 65 },
-  { id: "04", name: "Apple Smartwatches", score: 88 },
+  { id: "01", name: "Roufy's", score: 45 },
+  { id: "02", name: "Microsoft'", score: 72 },
+  { id: "03", name: "Cubic", score: 65 },
+  { id: "04", name: "E&", score: 88 },
 ];
 
 function ScorePage() {

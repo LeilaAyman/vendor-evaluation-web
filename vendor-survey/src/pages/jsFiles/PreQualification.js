@@ -1,146 +1,188 @@
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { doc, getDoc, collection, getDocs } from "firebase/firestore";
 import { db } from "../../firebase";
+import { collection, getDocs } from "firebase/firestore";
 import "../cssFiles/PreQualification.css";
 
 function PreQualification() {
   const [params] = useSearchParams();
   const vendorId = params.get("vendorId");
   const VendorName = params.get("vendor");
-  const index = parseInt(params.get("index") || "0", 10);
   const navigate = useNavigate();
 
-  const [vendor, setVendor] = useState(null);
-  const [allVendors, setAllVendors] = useState([]);
-
+  const [questions, setQuestions] = useState([]);
+  const [step, setStep] = useState(0);
   const [monopoly, setMonopoly] = useState("");
   const [monopolyComment, setMonopolyComment] = useState("");
   const [legal, setLegal] = useState("");
 
   useEffect(() => {
-    const fetchVendor = async () => {
-      const vendorSnap = await getDoc(doc(db, "vendors", vendorId));
-      setVendor({ id: vendorSnap.id, ...vendorSnap.data() });
+    const fetchQuestions = async () => {
+      try {
+        const snapshot = await getDocs(collection(db, "preevaluation"));
 
-      const snapshot = await getDocs(collection(db, "vendors"));
-      const vendorList = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setAllVendors(vendorList);
+        const rawQuestions = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          console.log("Document:", doc.id, data); // debug output
+          return { id: doc.id, ...data };
+        });
+
+        const filteredQuestions = rawQuestions
+          .filter(
+            (q) =>
+              typeof q.criteria === "string" &&
+              typeof q.question === "string" &&
+              q.criteria.trim() !== "" &&
+              q.question.trim() !== ""
+          )
+          .sort((a, b) =>
+            a.criteria.toLowerCase().localeCompare(b.criteria.toLowerCase())
+          );
+
+        console.log("Valid questions:", filteredQuestions);
+
+        setQuestions(filteredQuestions);
+      } catch (error) {
+        console.error("Failed to fetch pre-evaluation questions:", error);
+      }
     };
 
-    fetchVendor();
-  }, [vendorId]);
+    fetchQuestions();
+  }, []);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleNext = () => {
+    const currentCriterion = questions[step]?.criteria.toLowerCase();
 
-    if (monopoly === "yes" && monopolyComment.trim() === "") {
-      alert("❌ Please specify an alternative vendor for monopoly risk.");
-      return;
+    // Validate monopoly answer
+    if (currentCriterion === "monopoly") {
+      if (!monopoly) {
+        alert("❌ Please answer the monopoly question.");
+        return;
+      }
+      if (monopoly === "yes" && !monopolyComment.trim()) {
+        alert("❌ Please specify an alternative vendor for monopoly risk.");
+        return;
+      }
     }
 
-    if (legal === "no") {
-      alert("❌ Vendor disqualified due to legal non-compliance.");
-      proceedToNext();
-      return;
+    // Validate legal answer
+    if (currentCriterion === "legal") {
+      if (!legal) {
+        alert("❌ Please answer the legal compliance question.");
+        return;
+      }
+      if (legal === "no") {
+        alert("❌ Vendor disqualified due to legal non-compliance.");
+        navigate("/dashboard");
+        return;
+      }
     }
 
-    navigate(`/evaluationform?vendorId=${vendorId}&vendor=${encodeURIComponent(vendor.name)}&index=${index}`);
-  };
-
-  const proceedToNext = () => {
-    const nextIndex = index + 1;
-    const nextVendor = allVendors[nextIndex];
-
-    if (nextVendor) {
-      navigate(`/prequalification?vendorId=${nextVendor.id}&vendor=${encodeURIComponent(nextVendor.name)}&index=${nextIndex}`);
+    // Proceed to next step
+    if (step < questions.length - 1) {
+      setStep(step + 1);
     } else {
-      alert("✅ All vendors evaluated.");
-      navigate("/dashboard");
+      // Final submission navigation
+      navigate(
+        `/evaluationform?vendorId=${vendorId}&vendor=${encodeURIComponent(
+          VendorName
+        )}`
+      );
     }
   };
 
-  if (!vendor) return <div>Loading...</div>;
+  const current = questions[step];
+
+  if (!current) return <div className="loading">Loading...</div>;
 
   return (
-    <div className="pre-eval-wrapper">
-      <div className="pre-eval-sidebar">
+    <div className="prequal-wrapper">
+      <div className="prequal-sidebar">
         <img src="/images/iscore-logo.png" alt="logo" className="logo" />
-        <div className="sidebar-step">
-          <span>🟣</span>
-          <div>
-            <p>Monopoly Check</p>
+        {questions.map((q, i) => (
+          <div key={i} className={`sidebar-step ${i === step ? "active" : ""}`}>
+            <span>🟣</span>
+            <div>
+              {q.criteria.toLowerCase() === "monopoly"
+                ? "Monopoly risk"
+                : "Legal & Compliance"}
+            </div>
           </div>
-        </div>
-        <div className="sidebar-step">
-          <span>🟣</span>
-          <div>
-            <p>Legal Compliance</p>
-          </div>
-        </div>
+        ))}
       </div>
 
-      <div className="pre-eval-content">
-        <h5 className="vendor-title">{VendorName} Pre-Qualification</h5>
+      <div className="prequal-content">
+        <h3 className="vendor-title">{VendorName} Pre-Qualification</h3>
+        <h4 className="section-title">
+          Section:{" "}
+          {current.criteria.toLowerCase() === "monopoly"
+            ? "Monopoly risk"
+            : "Legal & Regulatory Compliance"}
+        </h4>
 
-        <form onSubmit={handleSubmit}>
-          <label className="question-label">
-            Does this vendor operate as the sole provider (monopoly) for the required solution or service in Egypt or globally?
-            <br />
-            <span className="subtext">If yes, please specify an alternative or a suggestion if possible.</span>
-          </label>
+        <p className="question-text">{current.question}</p>
 
+        {current.criteria.toLowerCase() === "monopoly" && (
+          <>
+            <div className="btn-group">
+              <button
+                className={`choice-btn ${monopoly === "yes" ? "selected" : ""}`}
+                onClick={() => setMonopoly("yes")}
+              >
+                Yes
+              </button>
+              <button
+                className={`choice-btn ${monopoly === "no" ? "selected" : ""}`}
+                onClick={() => setMonopoly("no")}
+              >
+                No
+              </button>
+            </div>
+            {monopoly === "yes" && (
+              <textarea
+                placeholder="e.g. Company B or any other international supplier"
+                value={monopolyComment}
+                onChange={(e) => setMonopolyComment(e.target.value)}
+                className="comment-box"
+              />
+            )}
+          </>
+        )}
+
+        {current.criteria.toLowerCase() === "legal" && (
           <div className="btn-group">
             <button
-              type="button"
-              className={`choice-btn ${monopoly === "yes" ? "selected" : ""}`}
-              onClick={() => setMonopoly("yes")}
+              className={`choice-btn ${legal === "yes" ? "selected" : ""}`}
+              onClick={() => setLegal("yes")}
             >
-              Yes
+              Yes – meets all legal and regulatory requirements
             </button>
             <button
-              type="button"
-              className={`choice-btn ${monopoly === "no" ? "selected" : ""}`}
-              onClick={() => setMonopoly("no")}
+              className={`choice-btn ${legal === "no" ? "selected" : ""}`}
+              onClick={() => setLegal("no")}
             >
-              No
+              No – disqualified due to non-compliance
             </button>
           </div>
+        )}
 
-          {monopoly === "yes" && (
-            <textarea
-              className="comment-box"
-              placeholder="e.g. Company B or any other international supplier"
-              value={monopolyComment}
-              onChange={(e) => setMonopolyComment(e.target.value)}
-            />
-          )}
+        <div className="action-btns">
+          <button
+            className="back-btn"
+            onClick={() => setStep(step - 1)}
+            disabled={step === 0}
+          >
+            Back
+          </button>
 
-          <input type="hidden" value="yes" onChange={(e) => setLegal(e.target.value)} />
+          <button className="next-btn" onClick={handleNext}>
+            {step === questions.length - 1 ? "Submit" : "Next"}
+          </button>
 
-          <div className="action-btns">
-            <button type="submit" className="next-btn">Next</button>
-            <button
-              type="button"
-              onClick={() => navigate("/dashboard")}
-              className="exit-btn"
-              style={{
-                marginLeft: "20px",
-                backgroundColor: "#e74c3c",
-                color: "#fff",
-                padding: "10px 20px",
-                border: "none",
-                borderRadius: "6px",
-                cursor: "pointer"
-              }}
-            >
-              Exit to Dashboard
-            </button>
-          </div>
-        </form>
+          <button className="exit-btn" onClick={() => navigate("/dashboard")}>
+            Exit to Dashboard
+          </button>
+        </div>
       </div>
     </div>
   );

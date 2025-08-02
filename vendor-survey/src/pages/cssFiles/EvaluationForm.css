@@ -1,16 +1,21 @@
 .eval-wrapper {
   display: flex;
-  min-height: 100vh;
-  background: #f8f8f8;
-  font-family: Arial, sans-serif;
+  height: 100vh;         /* Full height of screen */
+  overflow: hidden;      /* Prevent page scroll */
 }
+
 
 .eval-sidebar {
   width: 300px;
   background: #512da8;
   color: white;
   padding: 30px 20px;
+  overflow-y: auto;
+  height: 100vh;
+  box-sizing: border-box;
 }
+
+
 
 .logo {
   width: 150px;
@@ -43,8 +48,12 @@
 
 .eval-content {
   flex: 1;
+  overflow-y: auto;         /* Allows scrolling if content is long */
   padding: 60px;
+  background-color: #ffffff;
+  box-sizing: border-box;
 }
+
 
 .vendor-title {
   color: #512da8;
