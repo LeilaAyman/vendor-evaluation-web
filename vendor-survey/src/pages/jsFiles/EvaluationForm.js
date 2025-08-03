@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { collection, getDocs, addDoc } from "firebase/firestore";
 import { db } from "../../firebase";
 import { getAuth } from "firebase/auth";
+import { getCurrentUserDoc } from "../../utils/getUserDoc";
 import "../cssFiles/EvaluationForm.css";
 
 function EvaluationForm() {
@@ -14,9 +15,16 @@ function EvaluationForm() {
   const [current, setCurrent] = useState(0);
   const [responses, setResponses] = useState({});
   const [selectedScore, setSelectedScore] = useState(null);
+  const [accessDenied, setAccessDenied] = useState(false);
 
   useEffect(() => {
     const fetchQuestions = async () => {
+      const userData = await getCurrentUserDoc();
+
+      if (!userData?.access?.evaluation) {
+        setAccessDenied(true); // Block access to evaluation
+        return;
+      }
       const existingSnap = await getDocs(collection(db, "existing questions"));
       const existingQuestions = existingSnap.docs.map((doc, idx) => ({
         id: doc.id,
@@ -44,7 +52,9 @@ function EvaluationForm() {
         acc[key].push(q);
         return acc;
       }, {});
-      const sortedGrouped = Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b));
+      const sortedGrouped = Object.entries(grouped).sort(([a], [b]) =>
+        a.localeCompare(b)
+      );
       const finalQuestions = sortedGrouped.flatMap(([_, qs]) => qs);
       setQuestions(finalQuestions);
       setCurrent(0);
@@ -73,7 +83,9 @@ function EvaluationForm() {
     if (current + 1 < questions.length) {
       setCurrent(current + 1);
     } else {
-      const confirm = window.confirm("✅ Evaluation complete! Would you like to evaluate another vendor?");
+      const confirm = window.confirm(
+        "✅ Evaluation complete! Would you like to evaluate another vendor?"
+      );
       const auth = getAuth();
       const user = auth.currentUser;
 
@@ -86,7 +98,9 @@ function EvaluationForm() {
       let evaluatorName = "Unknown";
       try {
         const userSnap = await getDocs(collection(db, "users"));
-        const userDoc = userSnap.docs.find((doc) => doc.data().uid === user.uid);
+        const userDoc = userSnap.docs.find(
+          (doc) => doc.data().uid === user.uid
+        );
         if (userDoc) {
           evaluatorName = userDoc.data().name || "Unknown";
         }
@@ -124,13 +138,35 @@ function EvaluationForm() {
   };
 
   const currentQuestion = questions[current];
+  if (accessDenied) {
+    return (
+      <div className="eval-wrapper">
+        <div
+          className="eval-content"
+          style={{ textAlign: "center", padding: "50px" }}
+        >
+          <h2>❌ Access Denied</h2>
+          <p>You do not have permission to evaluate vendors.</p>
+          <button
+            onClick={() => navigate("/dashboard")}
+            style={{ marginTop: "20px" }}
+          >
+            Return to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="eval-wrapper">
       <div className="eval-sidebar">
         <img src="/images/iscore-logo.png" alt="logo" className="logo" />
         {questions.map((q, i) => (
-          <div key={q.id} className={`sidebar-step ${i === current ? "active" : ""}`}>
+          <div
+            key={q.id}
+            className={`sidebar-step ${i === current ? "active" : ""}`}
+          >
             <span>{i + 1}</span>
             <p>{q.text}</p>
           </div>
@@ -142,20 +178,28 @@ function EvaluationForm() {
         {currentQuestion && (
           <>
             <h5 className="criteria-label">{currentQuestion.criteria}</h5>
-            <p className="question-number">Question {current + 1} of {questions.length}</p>
+            <p className="question-number">
+              Question {current + 1} of {questions.length}
+            </p>
             <h3 className="question-text">{currentQuestion.text}</h3>
 
             <div className="score-options">
               {[1, 2, 3, 4, 5].map((score) => (
                 <div className="score-container" key={score}>
                   <button
-                    className={`score-circle score-${score} ${selectedScore === score ? "selected" : ""}`}
+                    className={`score-circle score-${score} ${
+                      selectedScore === score ? "selected" : ""
+                    }`}
                     onClick={() => setSelectedScore(score)}
                   >
                     {score}
                   </button>
                   {(score === 1 || score === 5) && (
-                    <div className={`score-label ${score === 1 ? "left" : "right"}`}>
+                    <div
+                      className={`score-label ${
+                        score === 1 ? "left" : "right"
+                      }`}
+                    >
                       {score === 1 ? "Poor" : "Excellent"}
                     </div>
                   )}
@@ -170,6 +214,17 @@ function EvaluationForm() {
               style={{ marginTop: "20px" }}
             >
               Submit Score
+            </button>
+            <button
+              className="exit-btn"
+              onClick={() => navigate("/dashboard")}
+              style={{
+                marginTop: "10px",
+                backgroundColor: "#ccc",
+                color: "#333",
+              }}
+            >
+              Exit to Dashboard
             </button>
           </>
         )}

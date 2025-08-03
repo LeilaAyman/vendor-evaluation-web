@@ -98,7 +98,7 @@ function Dashboard() {
           <div className="dashboard-buttons">
             <div className="dashboard-card" onClick={handleEvaluateClick}>
               <span className="card-icon">✏</span>
-              <span className="card-text">Evaluate Vendor</span>
+              <span className="card-text">Evaluate Vendors</span>
             </div>
 
             {evaluationMessage && (
@@ -109,7 +109,7 @@ function Dashboard() {
 
             <div className="dashboard-card" onClick={() => navigate("/ScorePage")}>
               <span className="card-icon">📊</span>
-              <span className="card-text">Check Vendor Score</span>
+              <span className="card-text">Check Vendors Score</span>
             </div>
 
             {isAdmin && (

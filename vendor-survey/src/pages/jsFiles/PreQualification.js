@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { db } from "../../firebase";
 import { collection, getDocs } from "firebase/firestore";
 import "../cssFiles/PreQualification.css";
+import { getCurrentUserDoc } from "../../utils/getUserDoc";
 
 function PreQualification() {
   const [params] = useSearchParams();
@@ -15,40 +16,34 @@ function PreQualification() {
   const [monopoly, setMonopoly] = useState("");
   const [monopolyComment, setMonopolyComment] = useState("");
   const [legal, setLegal] = useState("");
+  const [userAccess, setUserAccess] = useState(null);
+
 
   useEffect(() => {
-    const fetchQuestions = async () => {
-      try {
-        const snapshot = await getDocs(collection(db, "preevaluation"));
+  const fetchQuestions = async () => {
+    const userData = await getCurrentUserDoc();
 
-        const rawQuestions = snapshot.docs.map((doc) => {
-          const data = doc.data();
-          console.log("Document:", doc.id, data); // debug output
-          return { id: doc.id, ...data };
-        });
+    if (!userData?.access?.prerequisite) {
+      console.log("🔁 Skipping Pre-Qualification. Redirecting to Evaluation.");
+      navigate(
+        `/evaluationform?vendorId=${vendorId}&vendor=${encodeURIComponent(
+          VendorName
+        )}`
+      );
+      return;
+    }
 
-        const filteredQuestions = rawQuestions
-          .filter(
-            (q) =>
-              typeof q.criteria === "string" &&
-              typeof q.question === "string" &&
-              q.criteria.trim() !== "" &&
-              q.question.trim() !== ""
-          )
-          .sort((a, b) =>
-            a.criteria.toLowerCase().localeCompare(b.criteria.toLowerCase())
-          );
+    try {
+      const snapshot = await getDocs(collection(db, "preevaluation"));
+      // ... your filtering and sorting logic
+    } catch (error) {
+      console.error("Failed to fetch pre-evaluation questions:", error);
+    }
+    
+  };
 
-        console.log("Valid questions:", filteredQuestions);
-
-        setQuestions(filteredQuestions);
-      } catch (error) {
-        console.error("Failed to fetch pre-evaluation questions:", error);
-      }
-    };
-
-    fetchQuestions();
-  }, []);
+  fetchQuestions();
+}, []);
 
   const handleNext = () => {
     const currentCriterion = questions[step]?.criteria.toLowerCase();
