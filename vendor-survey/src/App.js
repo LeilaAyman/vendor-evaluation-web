@@ -7,12 +7,15 @@ import Profile from "./pages/jsFiles/Profile";
 import Login from "./pages/jsFiles/Login";
 import Register from "./pages/jsFiles/Register";
 import PreQualification from "./pages/jsFiles/PreQualification"; // New import
+import PreQualificationNew from "./pages/jsFiles/PreQualificationNew"; // New import
 import EvaluationFlow from "./pages/jsFiles/VendorFlow";
 import EvaluationForm from "./pages/jsFiles/EvaluationForm"; // 
+import EvaluationFormNew from "./pages/jsFiles/EvaluationFormNew"; // 
 import EvaluationIntro from "./pages/jsFiles/EvaluationIntro"; // 
 import Report from "./pages/jsFiles/Report"; // New import
 import VendorSelection from "./pages/jsFiles/vendorSelection"; // New import
 import ScorePage from "./pages/jsFiles/ScorePage"; // New import
+import NewVendor from "./pages/jsFiles/newVendor"; // New import
 import 'bootstrap/dist/css/bootstrap.min.css';
 import EvaluationSettings from "./pages/jsFiles/EvaluationSettings"; // Adjust path if needed
 
@@ -32,7 +35,9 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/evaluationflow" element={<EvaluationFlow />} />
             <Route path="/prequalification" element={<PreQualification />} />
+            <Route path="/prequalificationnew" element={<PreQualificationNew />} />
             <Route path="/evaluationform" element={<EvaluationForm />} />
+            <Route path="/evaluationformnew" element={<EvaluationFormNew />} />
             <Route path="/Report" element={<Report />} />
             <Route path="/evaluation-settings" element={<EvaluationSettings />} />
             <Route path="/ScorePage" element={<ScorePage />} />
@@ -41,6 +46,7 @@ function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/select-vendor" element={<VendorSelection />} />
             <Route path="/evaluation_intro" element={<EvaluationIntro />} />
+            <Route path="/new-vendor-entry" element={<NewVendor />} />
           </Routes>
         </div>
       </div>

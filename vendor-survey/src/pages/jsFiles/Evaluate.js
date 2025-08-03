@@ -64,16 +64,9 @@ function Dashboard() {
 </div>
           </div>
 
-          <div className="dashboard-buttons">
-            <div className="dashboard-card" onClick={() => handleEvaluationClick("/evaluation_intro")}>
-              <span className="card-icon">✏️</span>
-              <span className="card-text">Existing Vendor Evaluation</span>
-            </div>
-
-            <div className="dashboard-card" onClick={() => handleEvaluationClick("/score")}>
-              <span className="card-icon">📊</span>
-              <span className="card-text">New Vendor Evaluation</span>
-            </div>
+          <div className="dashboard-card" onClick={() => navigate("/new-vendor-entry")}>
+            <span className="card-icon">📊</span>
+            <span className="card-text">New Vendor Evaluation</span>
           </div>
         </div>
       </div>
