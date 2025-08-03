@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../cssFiles/ScorePage.css";
 import {
@@ -6,6 +6,8 @@ import {
   buildStyles,
 } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../../firebase";
 
 // Function to get color based on score
 const getScoreColor = (score) => {
@@ -15,22 +17,52 @@ const getScoreColor = (score) => {
   return "#2A9D8F"; // green
 };
 
-const dummyVendors = [
-  { id: "01", name: "Roufy's", score: 45 },
-  { id: "02", name: "Microsoft'", score: 72 },
-  { id: "03", name: "Cubic", score: 65 },
-  { id: "04", name: "E&", score: 88 },
-];
-
 function ScorePage() {
   const navigate = useNavigate();
+  const [vendors, setVendors] = useState([]);
+
+  useEffect(() => {
+    const fetchScores = async () => {
+      const snapshot = await getDocs(collection(db, "evaluations"));
+      const evaluations = snapshot.docs.map((doc) => doc.data());
+
+      const vendorMap = {};
+
+      evaluations.forEach((evalItem) => {
+        const vendor = evalItem.vendorName;
+        if (!vendorMap[vendor]) {
+          vendorMap[vendor] = { total: 0, count: 0 };
+        }
+        vendorMap[vendor].total += evalItem.totalScore;
+        vendorMap[vendor].count += 1;
+      });
+
+      const vendorList = Object.entries(vendorMap).map(([name, stats], index) => ({
+        id: (index + 1).toString().padStart(2, "0"),
+        name,
+        score: Math.round(stats.total / stats.count),
+      }));
+
+      setVendors(vendorList);
+    };
+
+    fetchScores();
+  }, []);
 
   return (
     <div className="score-wrapper">
       <div className="score-container">
         <div className="score-header">
-          <button className="back-arrow" onClick={() => navigate("/dashboard")}>←</button>
-          <img src="/images/iscore-logo.png" alt="Iscore Logo" className="score-logo" />
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <button className="back-arrow" onClick={() => navigate("/dashboard")}>←</button>
+            <img src="/images/iscore-logo.png" alt="Iscore Logo" className="score-logo" />
+          </div>
+          <button
+            className="dashboard-btn"
+            onClick={() => navigate("/vendors-dashboard")}
+          >
+            View Full Vendors Dashboard
+          </button>
         </div>
 
         <table className="score-table">
@@ -39,11 +71,11 @@ function ScorePage() {
               <th>#</th>
               <th>Vendor Name</th>
               <th>Score</th>
-              <th>Extract credit report</th>
+              <th>Extract Credit Report</th>
             </tr>
           </thead>
           <tbody>
-            {dummyVendors.map((vendor, index) => {
+            {vendors.map((vendor, index) => {
               const color = getScoreColor(vendor.score);
               return (
                 <tr key={index}>

@@ -19,6 +19,7 @@ import NewVendor from "./pages/jsFiles/newVendor"; // New import
 import 'bootstrap/dist/css/bootstrap.min.css';
 import EvaluationSettings from "./pages/jsFiles/EvaluationSettings"; // Adjust path if needed
 import AccessControl from "./pages/jsFiles/AccessControl"; // New import
+import VendorsDashboard from "./pages/jsFiles/VendorsDashboard"; // New import
 
 
 
@@ -49,6 +50,7 @@ function App() {
             <Route path="/evaluation_intro" element={<EvaluationIntro />} />
             <Route path="/AccessControl" element={<AccessControl />} />
             <Route path="/new-vendor-entry" element={<NewVendor />} />
+            <Route path="/vendors-dashboard" element={<VendorsDashboard />} />
           </Routes>
         </div>
       </div>
