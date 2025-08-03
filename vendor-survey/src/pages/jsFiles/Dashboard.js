@@ -47,7 +47,9 @@ function Dashboard() {
         const end = data.evaluationend?.toDate();
 
         if (!start || !end) {
-          setEvaluationMessage("⚠️ Evaluation period is not configured properly.");
+          setEvaluationMessage(
+            "⚠️ Evaluation period is not configured properly."
+          );
           return;
         }
 
@@ -69,9 +71,7 @@ function Dashboard() {
 
   return (
     <div className="register-page-wrapper">
-      <div className="left-header">
-
-      </div>
+      <div className="left-header"></div>
 
       <div className="dashboard-wrapper">
         <div className="dashboard-container">
@@ -83,7 +83,10 @@ function Dashboard() {
             />
 
             <div className="header-actions">
-              <div className="profile-section" onClick={() => navigate("/profile")}>
+              <div
+                className="profile-section"
+                onClick={() => navigate("/profile")}
+              >
                 <span className="profile-icon">👤</span>
                 <span className="profile-text">Profile</span>
               </div>
@@ -94,7 +97,8 @@ function Dashboard() {
             </div>
           </div>
 
-
+          {/* Evaluation Tools */}
+          <div className="section-title">📋 Evaluation Tools</div>
           <div className="dashboard-buttons">
             <div className="dashboard-card" onClick={handleEvaluateClick}>
               <span className="card-icon">✏</span>
@@ -102,30 +106,53 @@ function Dashboard() {
             </div>
 
             {evaluationMessage && (
-              <p style={{ color: "red", fontWeight: "bold", marginTop: "10px" }}>
+              <p
+                style={{ color: "red", fontWeight: "bold", marginTop: "10px" }}
+              >
                 {evaluationMessage}
               </p>
             )}
 
-            <div className="dashboard-card" onClick={() => navigate("/ScorePage")}>
+            <div
+              className="dashboard-card"
+              onClick={() => navigate("/ScorePage")}
+            >
               <span className="card-icon">📊</span>
               <span className="card-text">Check Vendors Score</span>
             </div>
+          </div>
 
-            {isAdmin && (
-              <>
-                <div className="dashboard-card" onClick={() => navigate("/evaluation-settings")}>
+          {/* Admin Tools (Only visible to admins) */}
+          {isAdmin && (
+            <>
+              <div className="section-title">🛠️ Administration Tools</div>
+              <div className="dashboard-buttons">
+                <div
+                  className="dashboard-card"
+                  onClick={() => navigate("/evaluation-settings")}
+                >
                   <span className="card-icon">⚙️</span>
                   <span className="card-text">Manage Evaluation Period</span>
                 </div>
 
-                <div className="dashboard-card" onClick={() => navigate("/AccessControl")}>
+                <div
+                  className="dashboard-card"
+                  onClick={() => navigate("/AccessControl")}
+                >
                   <span className="card-icon">🧑‍💼</span>
                   <span className="card-text">Manage User Access</span>
                 </div>
-              </>
-            )}
-          </div>
+
+                <div
+                  className="dashboard-card"
+                  onClick={() => navigate("/new-vendor-entry")}
+                >
+                  <span className="card-icon">➕</span>
+                  <span className="card-text">Add New Vendor</span>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -5,6 +5,9 @@ import { db } from "../../firebase";
 import { getAuth } from "firebase/auth";
 import { getCurrentUserDoc } from "../../utils/getUserDoc";
 import "../cssFiles/EvaluationForm.css";
+import { Toaster } from "react-hot-toast";
+import { toast } from "react-hot-toast";
+import Swal from "sweetalert2";
 
 function EvaluationForm() {
   const [params] = useSearchParams();
@@ -20,11 +23,11 @@ function EvaluationForm() {
   useEffect(() => {
     const fetchQuestions = async () => {
       const userData = await getCurrentUserDoc();
-
       if (!userData?.access?.evaluation) {
-        setAccessDenied(true); // Block access to evaluation
+        setAccessDenied(true);
         return;
       }
+
       const existingSnap = await getDocs(collection(db, "existing questions"));
       const existingQuestions = existingSnap.docs.map((doc, idx) => ({
         id: doc.id,
@@ -66,8 +69,15 @@ function EvaluationForm() {
   }, []);
 
   const handleSubmitScore = async () => {
-    const currentQ = questions[current];
+    if (selectedScore === null) {
+      toast.error("Please select a score before proceeding.", {
+        duration: 4000,
+        position: "top-center",
+      });
+      return;
+    }
 
+    const currentQ = questions[current];
     const updatedResponses = {
       ...responses,
       [currentQ.id]: {
@@ -83,9 +93,6 @@ function EvaluationForm() {
     if (current + 1 < questions.length) {
       setCurrent(current + 1);
     } else {
-      const confirm = window.confirm(
-        "✅ Evaluation complete! Would you like to evaluate another vendor?"
-      );
       const auth = getAuth();
       const user = auth.currentUser;
 
@@ -94,7 +101,6 @@ function EvaluationForm() {
         return;
       }
 
-      // Fetch evaluator name from 'users' collection
       let evaluatorName = "Unknown";
       try {
         const userSnap = await getDocs(collection(db, "users"));
@@ -124,12 +130,32 @@ function EvaluationForm() {
       };
 
       try {
-        await addDoc(collection(db, "evaluations"), evaluationData);
-        if (confirm) {
-          navigate("/select-vendor");
-        } else {
-          navigate("/dashboard");
-        }
+        Swal.fire({
+          title: "Are you sure you want to submit?",
+          text: "Once submitted, you won't be able to change your answers.",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "Yes, submit",
+          cancelButtonText: "No, go back",
+          confirmButtonColor: "#3085d6",
+          cancelButtonColor: "#d33",
+        }).then(async (result) => {
+          if (result.isConfirmed) {
+            // Submit to Firestore
+            await addDoc(collection(db, "evaluations"), evaluationData);
+
+            // Show confirmation
+            Swal.fire({
+              icon: "success",
+              title: "Submitted!",
+              text: "Your form has been submitted successfully.",
+              confirmButtonText: "Go to vendor list",
+              confirmButtonColor: "#3085d6",
+            }).then(() => {
+              navigate("/select-vendor");
+            });
+          }
+        });
       } catch (error) {
         console.error("Error saving evaluation:", error);
         alert("❌ Failed to save evaluation.");
@@ -138,9 +164,11 @@ function EvaluationForm() {
   };
 
   const currentQuestion = questions[current];
+
   if (accessDenied) {
     return (
       <div className="eval-wrapper">
+        <Toaster position="top-center" reverseOrder={false} />
         <div
           className="eval-content"
           style={{ textAlign: "center", padding: "50px" }}
@@ -160,6 +188,7 @@ function EvaluationForm() {
 
   return (
     <div className="eval-wrapper">
+      <Toaster position="top-center" reverseOrder={false} />
       <div className="eval-sidebar">
         <img src="/images/iscore-logo.png" alt="logo" className="logo" />
         {questions.map((q, i) => (
@@ -207,24 +236,42 @@ function EvaluationForm() {
               ))}
             </div>
 
-            <button
-              className="submit-score-btn"
-              onClick={handleSubmitScore}
-              disabled={selectedScore === null}
-              style={{ marginTop: "20px" }}
-            >
-              Submit Score
-            </button>
+            <div className="navigation-buttons">
+              <div className="nav-left">
+                {current > 0 && (
+                  <button
+                    className="back-btn"
+                    onClick={() => setCurrent(current - 1)}
+                  >
+                    ⬅️ Back
+                  </button>
+                )}
+              </div>
+              <div className="nav-right">
+                <button className="next-btn" onClick={handleSubmitScore}>
+                  {current + 1 < questions.length ? "Next ➡️" : "Submit ✅"}
+                </button>
+              </div>
+            </div>
+
             <button
               className="exit-btn"
-              onClick={() => navigate("/dashboard")}
+              onClick={() => {
+                const confirmExit = window.confirm(
+                  "⚠️ Are you sure you want to exit evaluation? Your current progress will not be saved."
+                );
+                if (confirmExit) navigate("/dashboard");
+              }}
               style={{
-                marginTop: "10px",
-                backgroundColor: "#ccc",
+                marginTop: "30px",
+                backgroundColor: "#eee",
                 color: "#333",
+                padding: "10px 20px",
+                borderRadius: "6px",
+                border: "1px solid #ccc",
               }}
             >
-              Exit to Dashboard
+              Exit Evaluation
             </button>
           </>
         )}

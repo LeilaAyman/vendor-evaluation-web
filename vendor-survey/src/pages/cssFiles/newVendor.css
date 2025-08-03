@@ -1,33 +1,33 @@
-.entry-wrapper {
-  max-width: 500px;
+.add-vendor-wrapper {
+  max-width: 400px;
   margin: 100px auto;
-  padding: 30px;
-  background-color: #f4f4f9;
-  border-radius: 10px;
+  padding: 24px;
+  background: #f4f4f4;
+  border-radius: 12px;
+  box-shadow: 0 0 6px rgba(0,0,0,0.1);
   text-align: center;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
-.vendor-input {
-  padding: 10px;
-  width: 100%;
-  font-size: 16px;
+.add-vendor-wrapper h2 {
   margin-bottom: 20px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
 }
 
-.entry-wrapper button {
-  margin-top: 10px;
+.add-vendor-wrapper input {
+  padding: 10px;
+  width: 80%;
+  margin-bottom: 15px;
+}
+
+.add-vendor-wrapper button {
   padding: 10px 20px;
-  border: none;
-  background-color: #5e60ce;
+  background: #1976d2;
   color: white;
+  border: none;
   border-radius: 6px;
   cursor: pointer;
 }
 
-.back-button {
-  background-color: #999;
-  margin-left: 10px;
+.feedback-msg {
+  margin-top: 10px;
+  font-weight: bold;
 }

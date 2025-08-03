@@ -1,9 +1,11 @@
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { db } from "../../firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, addDoc, Timestamp } from "firebase/firestore";
 import "../cssFiles/PreQualification.css";
 import { getCurrentUserDoc } from "../../utils/getUserDoc";
+import { toast, Toaster } from "react-hot-toast";
+import Swal from "sweetalert2";
 
 function PreQualification() {
   const [params] = useSearchParams();
@@ -12,168 +14,153 @@ function PreQualification() {
   const navigate = useNavigate();
 
   const [questions, setQuestions] = useState([]);
+  const [answers, setAnswers] = useState({});
   const [step, setStep] = useState(0);
-  const [monopoly, setMonopoly] = useState("");
-  const [monopolyComment, setMonopolyComment] = useState("");
-  const [legal, setLegal] = useState("");
-  const [userAccess, setUserAccess] = useState(null);
-
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
-  const fetchQuestions = async () => {
-    const userData = await getCurrentUserDoc();
+    const fetchQuestionsAndUser = async () => {
+      const userData = await getCurrentUserDoc();
 
-    if (!userData?.access?.prerequisite) {
-      console.log("🔁 Skipping Pre-Qualification. Redirecting to Evaluation.");
-      navigate(
-        `/evaluationform?vendorId=${vendorId}&vendor=${encodeURIComponent(
-          VendorName
-        )}`
-      );
-      return;
-    }
-
-    try {
-      const snapshot = await getDocs(collection(db, "preevaluation"));
-      // ... your filtering and sorting logic
-    } catch (error) {
-      console.error("Failed to fetch pre-evaluation questions:", error);
-    }
-    
-  };
-
-  fetchQuestions();
-}, []);
-
-  const handleNext = () => {
-    const currentCriterion = questions[step]?.criteria.toLowerCase();
-
-    // Validate monopoly answer
-    if (currentCriterion === "monopoly") {
-      if (!monopoly) {
-        alert("❌ Please answer the monopoly question.");
-        return;
-      }
-      if (monopoly === "yes" && !monopolyComment.trim()) {
-        alert("❌ Please specify an alternative vendor for monopoly risk.");
-        return;
-      }
-    }
-
-    // Validate legal answer
-    if (currentCriterion === "legal") {
-      if (!legal) {
-        alert("❌ Please answer the legal compliance question.");
-        return;
-      }
-      if (legal === "no") {
-        alert("❌ Vendor disqualified due to legal non-compliance.");
+      if (!userData) {
+        toast.error("⚠️ Failed to retrieve user data.");
         navigate("/dashboard");
         return;
       }
-    }
 
-    // Proceed to next step
-    if (step < questions.length - 1) {
-      setStep(step + 1);
-    } else {
-      // Final submission navigation
-      navigate(
-        `/evaluationform?vendorId=${vendorId}&vendor=${encodeURIComponent(
-          VendorName
-        )}`
-      );
+      setUserId(userData?.uid || userData?.id); // adapt depending on your getCurrentUserDoc shape
+
+      if (!userData?.access?.prerequisite) {
+        navigate(`/evaluationform?vendorId=${vendorId}&vendor=${encodeURIComponent(VendorName)}`);
+        return;
+      }
+
+      try {
+        const snapshot = await getDocs(collection(db, "preevaluation"));
+        const legalQuestions = snapshot.docs
+          .map((doc) => doc.data())
+          .filter((q) => q.criteria === "Legal & Regulatory Compliance");
+
+        setQuestions(legalQuestions);
+      } catch (error) {
+        toast.error("❌ Failed to fetch legal prequalification questions.");
+        console.error("Firestore error:", error);
+      }
+    };
+
+    fetchQuestionsAndUser();
+  }, [navigate, vendorId, VendorName]);
+
+  const handleAnswer = async (value) => {
+    const updated = { ...answers, [step]: value };
+    setAnswers(updated);
+
+    if (value === "no") {
+      const result = await Swal.fire({
+        icon: "warning",
+        title: "Regulatory Noncompliance",
+        text: "❌ Vendor will be discarded due to regulatory noncompliance.",
+        confirmButtonText: "Confirm Discard",
+        showCancelButton: true,
+        cancelButtonText: "Stay Here",
+        confirmButtonColor: "#d33",
+      });
+
+      if (result.isConfirmed) {
+        try {
+          await addDoc(collection(db, "discarded_vendors"), {
+            vendorId,
+            vendorName: VendorName,
+            reason: "Regulatory noncompliance",
+            discardedBy: userId,
+            discardedAt: Timestamp.now(),
+          });
+
+          await Swal.fire({
+            icon: "success",
+            title: "Vendor Discarded",
+            text: "✅ The vendor has been successfully disqualified and recorded.",
+            confirmButtonText: "OK",
+          });
+
+          navigate("/select-vendor");
+        } catch (err) {
+          Swal.fire({
+            icon: "error",
+            title: "Failed to Record Discard",
+            text: err.message,
+          });
+        }
+      }
     }
   };
 
-  const current = questions[step];
+  const handleNext = () => {
+    if (!answers[step]) {
+      toast.error("⚠️ Please answer this question before proceeding.");
+      return;
+    }
 
-  if (!current) return <div className="loading">Loading...</div>;
+    if (step < questions.length - 1) {
+      setStep(step + 1);
+    } else {
+      const allPassed = Object.values(answers).every((ans) => ans === "yes");
+      if (allPassed) {
+        navigate(`/evaluationform?vendorId=${vendorId}&vendor=${encodeURIComponent(VendorName)}`);
+      } else {
+        toast.error("❌ Vendor disqualified. All legal questions must be passed.");
+        navigate("/dashboard");
+      }
+    }
+  };
+
+  const handleBack = () => {
+    if (step > 0) setStep(step - 1);
+  };
+
+  const current = questions[step];
+  if (!current) return <div className="loading">Loading questions...</div>;
 
   return (
     <div className="prequal-wrapper">
+      <Toaster position="top-right" />
       <div className="prequal-sidebar">
         <img src="/images/iscore-logo.png" alt="logo" className="logo" />
-        {questions.map((q, i) => (
+        {questions.map((_, i) => (
           <div key={i} className={`sidebar-step ${i === step ? "active" : ""}`}>
-            <span>🟣</span>
-            <div>
-              {q.criteria.toLowerCase() === "monopoly"
-                ? "Monopoly risk"
-                : "Legal & Compliance"}
-            </div>
+            <span>📋</span> Question {i + 1}
           </div>
         ))}
       </div>
 
       <div className="prequal-content">
         <h3 className="vendor-title">{VendorName} Pre-Qualification</h3>
-        <h4 className="section-title">
-          Section:{" "}
-          {current.criteria.toLowerCase() === "monopoly"
-            ? "Monopoly risk"
-            : "Legal & Regulatory Compliance"}
-        </h4>
+        <h4 className="section-title">Legal & Regulatory Compliance</h4>
 
         <p className="question-text">{current.question}</p>
 
-        {current.criteria.toLowerCase() === "monopoly" && (
-          <>
-            <div className="btn-group">
-              <button
-                className={`choice-btn ${monopoly === "yes" ? "selected" : ""}`}
-                onClick={() => setMonopoly("yes")}
-              >
-                Yes
-              </button>
-              <button
-                className={`choice-btn ${monopoly === "no" ? "selected" : ""}`}
-                onClick={() => setMonopoly("no")}
-              >
-                No
-              </button>
-            </div>
-            {monopoly === "yes" && (
-              <textarea
-                placeholder="e.g. Company B or any other international supplier"
-                value={monopolyComment}
-                onChange={(e) => setMonopolyComment(e.target.value)}
-                className="comment-box"
-              />
-            )}
-          </>
-        )}
-
-        {current.criteria.toLowerCase() === "legal" && (
-          <div className="btn-group">
-            <button
-              className={`choice-btn ${legal === "yes" ? "selected" : ""}`}
-              onClick={() => setLegal("yes")}
-            >
-              Yes – meets all legal and regulatory requirements
-            </button>
-            <button
-              className={`choice-btn ${legal === "no" ? "selected" : ""}`}
-              onClick={() => setLegal("no")}
-            >
-              No – disqualified due to non-compliance
-            </button>
-          </div>
-        )}
+        <div className="btn-group">
+          <button
+            className={`choice-btn ${answers[step] === "yes" ? "selected" : ""}`}
+            onClick={() => handleAnswer("yes")}
+          >
+            ✅ Yes – vendor is compliant
+          </button>
+          <button
+            className={`choice-btn ${answers[step] === "no" ? "selected" : ""}`}
+            onClick={() => handleAnswer("no")}
+          >
+            ❌ No – vendor is not compliant
+          </button>
+        </div>
 
         <div className="action-btns">
-          <button
-            className="back-btn"
-            onClick={() => setStep(step - 1)}
-            disabled={step === 0}
-          >
+          <button className="back-btn" onClick={handleBack} disabled={step === 0}>
             Back
           </button>
-
           <button className="next-btn" onClick={handleNext}>
             {step === questions.length - 1 ? "Submit" : "Next"}
           </button>
-
           <button className="exit-btn" onClick={() => navigate("/dashboard")}>
             Exit to Dashboard
           </button>

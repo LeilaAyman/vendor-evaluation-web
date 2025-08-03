@@ -78,6 +78,7 @@
   gap: 80px;                  /* Space between cards */
   flex-wrap: wrap;            /* Allow wrapping on small screens */
   margin-top: 120px;           /* Optional spacing from header */
+  margin-bottom: 100px;           /* Optional spacing from header */
 }
 .back-button {
   background-color: #3498db;

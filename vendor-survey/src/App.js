@@ -14,6 +14,7 @@ import EvaluationFormNew from "./pages/jsFiles/EvaluationFormNew"; //
 import EvaluationIntro from "./pages/jsFiles/EvaluationIntro"; // 
 import Report from "./pages/jsFiles/Report"; // New import
 import VendorSelection from "./pages/jsFiles/vendorSelection"; // New import
+import NewVendorSelection from "./pages/jsFiles/newVendorSelection"; // New import
 import ScorePage from "./pages/jsFiles/ScorePage"; // New import
 import NewVendor from "./pages/jsFiles/newVendor"; // New import
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -47,6 +48,7 @@ function App() {
             <Route path="/evaluation" element={<Evaluation />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/select-vendor" element={<VendorSelection />} />
+            <Route path="/new-vendor-evaluation" element={<NewVendorSelection />} />
             <Route path="/evaluation_intro" element={<EvaluationIntro />} />
             <Route path="/AccessControl" element={<AccessControl />} />
             <Route path="/new-vendor-entry" element={<NewVendor />} />

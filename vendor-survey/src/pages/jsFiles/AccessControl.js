@@ -43,9 +43,8 @@ function AccessControl() {
           <tr>
             <th>Name</th>
             <th>Email</th>
-            <th>Prerequisite Access</th>
+            <th>Legality Prerequisite Access</th>
             <th>Evaluation Access</th>
-            <th>Legal</th>
           </tr>
         </thead>
         <tbody>
@@ -67,13 +66,7 @@ function AccessControl() {
                   onChange={() => toggleAccess(user.id, "evaluation")}
                 />
               </td>
-              <td>
-                <input
-                  type="checkbox"
-                  checked={user.access.legal}
-                  onChange={() => toggleAccess(user.id, "legal")}
-                />
-              </td>
+              
             </tr>
           ))}
         </tbody>

@@ -14,6 +14,35 @@
   height: 100vh;
   box-sizing: border-box;
 }
+.navigation-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.nav-left .back-btn,
+.nav-right .next-btn {
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.nav-left .back-btn {
+  background-color: #ccc;
+  color: #333;
+}
+
+.nav-right .next-btn {
+  background-color: #007bff;
+  color: white;
+}
+
+.exit-btn:hover {
+  background-color: #ddd;
+}
+
 
 
 
