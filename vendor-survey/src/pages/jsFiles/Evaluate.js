@@ -49,24 +49,33 @@ function Dashboard() {
   return (
     <div className="register-page-wrapper">
       <div className="left-header">
-        <div className="back-button" onClick={goBack}>
-          ← Back
-        </div>
+
       </div>
 
       <div className="dashboard-wrapper">
         <div className="dashboard-container">
+          <button className="back-button" onClick={goBack}>🔙 Back to Dashboard</button>
+
           <div className="dashboard-header">
             <img src="/images/iscore-logo.png" alt="Iscore Logo" className="dashboard-logo" />
             <div className="profile-section" onClick={() => navigate("/profile")}>
-  <span className="profile-icon">👤</span>
-  <span className="profile-text">Profile</span>
-</div>
+              <span className="profile-icon">👤</span>
+              <span className="profile-text">Profile</span>
+
+            </div>
+
           </div>
 
-          <div className="dashboard-card" onClick={() => navigate("/new-vendor-entry")}>
-            <span className="card-icon">📊</span>
-            <span className="card-text">New Vendor Evaluation</span>
+          <div className="dashboard-buttons">
+            <div className="dashboard-card" onClick={() => handleEvaluationClick("/evaluation_intro")}>
+              <span className="card-icon">✏</span>
+              <span className="card-text">Existing Vendor Evaluation</span>
+            </div>
+
+            <div className="dashboard-card" onClick={() => navigate("/new-vendor-entry")}>
+              <span className="card-icon">📊</span>
+              <span className="card-text">New Vendor Evaluation</span>
+            </div>
           </div>
         </div>
       </div>

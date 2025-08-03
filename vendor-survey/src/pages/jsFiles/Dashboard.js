@@ -70,9 +70,7 @@ function Dashboard() {
   return (
     <div className="register-page-wrapper">
       <div className="left-header">
-        <div className="back-button" onClick={handleSignOut}>
-          ← Sign Out
-        </div>
+
       </div>
 
       <div className="dashboard-wrapper">
@@ -83,11 +81,19 @@ function Dashboard() {
               alt="Iscore Logo"
               className="dashboard-logo"
             />
-            <div className="profile-section" onClick={() => navigate("/profile")}>
-              <span className="profile-icon">👤</span>
-              <span className="profile-text">Profile</span>
+
+            <div className="header-actions">
+              <div className="profile-section" onClick={() => navigate("/profile")}>
+                <span className="profile-icon">👤</span>
+                <span className="profile-text">Profile</span>
+              </div>
+
+              <button className="signout-button" onClick={handleSignOut}>
+                🔓 Sign Out
+              </button>
             </div>
           </div>
+
 
           <div className="dashboard-buttons">
             <div className="dashboard-card" onClick={handleEvaluateClick}>
