@@ -1,0 +1,66 @@
+.eval-settings-wrapper {
+  max-width: 500px;
+  margin: 80px auto;
+  padding: 30px;
+  background-color: #f4f6f8;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+}
+
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.settings-header h2 {
+  font-size: 22px;
+  margin: 0;
+}
+
+.back-btn {
+  background-color: #dcdcdc;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 25px;
+}
+
+.settings-form label {
+  display: flex;
+  flex-direction: column;
+  font-weight: 600;
+}
+
+.settings-form input {
+  margin-top: 6px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.settings-form button {
+  margin-top: 10px;
+  background-color: #5e60ce;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.settings-form button:hover {
+  background-color: #4749bb;
+}
+
+.status-msg {
+  margin-top: 10px;
+  font-weight: 500;
+}

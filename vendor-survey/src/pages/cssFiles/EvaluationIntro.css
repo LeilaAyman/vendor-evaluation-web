@@ -68,3 +68,22 @@
 .start-button:hover {
   background-color: #462c8c;
 }
+.score-circle.selected {
+  border: 3px solid #5e60ce;
+  transform: scale(1.1);
+}
+
+.submit-score-btn {
+  padding: 10px 20px;
+  font-weight: bold;
+  background-color: #5e60ce;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.submit-score-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+

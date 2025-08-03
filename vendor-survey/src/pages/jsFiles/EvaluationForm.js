@@ -1,4 +1,3 @@
-// Updated EvaluationForm.js with proper flow and saving to Firestore
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { collection, getDocs, addDoc } from "firebase/firestore";
@@ -14,6 +13,7 @@ function EvaluationForm() {
   const [questions, setQuestions] = useState([]);
   const [current, setCurrent] = useState(0);
   const [responses, setResponses] = useState({});
+  const [selectedScore, setSelectedScore] = useState(null);
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -49,17 +49,26 @@ function EvaluationForm() {
       setQuestions(finalQuestions);
       setCurrent(0);
       setResponses({});
+      setSelectedScore(null);
     };
 
     fetchQuestions();
   }, []);
 
-  const handleScore = async (score) => {
+  const handleSubmitScore = async () => {
     const currentQ = questions[current];
-    setResponses((prev) => {
-      const updated = { ...prev, [currentQ.id]: { score, weight: currentQ.weight, text: currentQ.text } };
-      return updated;
-    });
+
+    const updatedResponses = {
+      ...responses,
+      [currentQ.id]: {
+        score: selectedScore,
+        weight: currentQ.weight,
+        text: currentQ.text,
+      },
+    };
+
+    setResponses(updatedResponses);
+    setSelectedScore(null);
 
     if (current + 1 < questions.length) {
       setCurrent(current + 1);
@@ -73,18 +82,31 @@ function EvaluationForm() {
         return;
       }
 
-      const totalScore = Object.values(responses).reduce((acc, item) => {
+      // Fetch evaluator name from 'users' collection
+      let evaluatorName = "Unknown";
+      try {
+        const userSnap = await getDocs(collection(db, "users"));
+        const userDoc = userSnap.docs.find((doc) => doc.data().uid === user.uid);
+        if (userDoc) {
+          evaluatorName = userDoc.data().name || "Unknown";
+        }
+      } catch (err) {
+        console.error("Could not fetch evaluator name:", err);
+      }
+
+      const totalScore = Object.values(updatedResponses).reduce((acc, item) => {
         const weighted = (item.score / 5) * item.weight;
         return acc + weighted;
-      }, (score / 5) * currentQ.weight); // include last question's score
+      }, 0);
 
       const evaluationData = {
         userId: user.uid,
+        evaluatorName,
         vendorId,
         vendorName,
-        responses,
+        responses: updatedResponses,
         totalScore: parseFloat(totalScore.toFixed(2)),
-        submittedAt: new Date()
+        submittedAt: new Date(),
       };
 
       try {
@@ -126,7 +148,10 @@ function EvaluationForm() {
             <div className="score-options">
               {[1, 2, 3, 4, 5].map((score) => (
                 <div className="score-container" key={score}>
-                  <button className={`score-circle score-${score}`} onClick={() => handleScore(score)}>
+                  <button
+                    className={`score-circle score-${score} ${selectedScore === score ? "selected" : ""}`}
+                    onClick={() => setSelectedScore(score)}
+                  >
                     {score}
                   </button>
                   {(score === 1 || score === 5) && (
@@ -137,6 +162,15 @@ function EvaluationForm() {
                 </div>
               ))}
             </div>
+
+            <button
+              className="submit-score-btn"
+              onClick={handleSubmitScore}
+              disabled={selectedScore === null}
+              style={{ marginTop: "20px" }}
+            >
+              Submit Score
+            </button>
           </>
         )}
       </div>
