@@ -66,7 +66,7 @@ function Report() {
 
       {/* Line Chart */}
       <div style={{ width: "100%", height: 300, marginBottom: "2rem" }}>
-        <h3>Performance Over Time</h3>
+        <h3>Performance</h3>
         {evaluations.length > 0 ? (
           <ResponsiveContainer>
             <LineChart

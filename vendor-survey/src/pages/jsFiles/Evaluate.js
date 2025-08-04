@@ -54,7 +54,7 @@ function Dashboard() {
 
       <div className="dashboard-wrapper">
         <div className="dashboard-container">
-          <button className="back-button" onClick={goBack}>🔙 Back to Dashboard</button>
+          <button className="back-button" onClick={goBack}>🔙 Back </button>
 
           <div className="dashboard-header">
             <img src="/images/iscore-logo.png" alt="Iscore Logo" className="dashboard-logo" />

@@ -31,7 +31,11 @@ function PreQualification() {
       setUserId(userData?.uid || userData?.id); // adapt depending on your getCurrentUserDoc shape
 
       if (!userData?.access?.prerequisite) {
-        navigate(`/evaluationform?vendorId=${vendorId}&vendor=${encodeURIComponent(VendorName)}`);
+        navigate(
+          `/evaluationform?vendorId=${vendorId}&vendor=${encodeURIComponent(
+            VendorName
+          )}`
+        );
         return;
       }
 
@@ -51,68 +55,65 @@ function PreQualification() {
     fetchQuestionsAndUser();
   }, [navigate, vendorId, VendorName]);
 
-  const handleAnswer = async (value) => {
-    const updated = { ...answers, [step]: value };
-    setAnswers(updated);
+  const handleAnswer = (value) => {
+  const updated = { ...answers, [step]: value };
+  setAnswers(updated);
+};
 
-    if (value === "no") {
+const handleNext = async () => {
+  if (!answers[step]) {
+    toast.error("⚠️ Please answer this question before proceeding.");
+    return;
+  }
+
+  if (step < questions.length - 1) {
+    setStep(step + 1);
+  } else {
+    const hasNonCompliance = Object.values(answers).some((ans) => ans === "no");
+
+    if (hasNonCompliance) {
       const result = await Swal.fire({
         icon: "warning",
-        title: "Regulatory Noncompliance",
-        text: "❌ Vendor will be discarded due to regulatory noncompliance.",
-        confirmButtonText: "Confirm Discard",
+        title: "Noncompliance Detected",
+        text: "⚠️ One or more answers indicate regulatory noncompliance. Do you still want to proceed with the evaluation?",
         showCancelButton: true,
-        cancelButtonText: "Stay Here",
+        confirmButtonText: "Yes, Proceed",
+        cancelButtonText: "No, Cancel",
         confirmButtonColor: "#d33",
       });
 
-      if (result.isConfirmed) {
-        try {
-          await addDoc(collection(db, "discarded_vendors"), {
-            vendorId,
-            vendorName: VendorName,
-            reason: "Regulatory noncompliance",
-            discardedBy: userId,
-            discardedAt: Timestamp.now(),
-          });
+      if (!result.isConfirmed) return;
 
-          await Swal.fire({
-            icon: "success",
-            title: "Vendor Discarded",
-            text: "✅ The vendor has been successfully disqualified and recorded.",
-            confirmButtonText: "OK",
-          });
+      try {
+        await addDoc(collection(db, "discarded_vendors"), {
+          vendorId,
+          vendorName: VendorName,
+          reason: "Regulatory noncompliance",
+          discardedBy: userId,
+          discardedAt: Timestamp.now(),
+        });
 
-          navigate("/select-vendor");
-        } catch (err) {
-          Swal.fire({
-            icon: "error",
-            title: "Failed to Record Discard",
-            text: err.message,
-          });
-        }
-      }
-    }
-  };
+        await Swal.fire({
+          icon: "info",
+          title: "Vendor Disqualified",
+          text: "⚠️ The vendor has been marked as disqualified. You will now proceed to the evaluation form.",
+          confirmButtonText: "Go to Form",
+        });
 
-  const handleNext = () => {
-    if (!answers[step]) {
-      toast.error("⚠️ Please answer this question before proceeding.");
-      return;
-    }
-
-    if (step < questions.length - 1) {
-      setStep(step + 1);
-    } else {
-      const allPassed = Object.values(answers).every((ans) => ans === "yes");
-      if (allPassed) {
         navigate(`/evaluationform?vendorId=${vendorId}&vendor=${encodeURIComponent(VendorName)}`);
-      } else {
-        toast.error("❌ Vendor disqualified. All legal questions must be passed.");
-        navigate("/dashboard");
+      } catch (err) {
+        Swal.fire({
+          icon: "error",
+          title: "Failed to Record Discard",
+          text: err.message,
+        });
       }
+    } else {
+      navigate(`/evaluationform?vendorId=${vendorId}&vendor=${encodeURIComponent(VendorName)}`);
     }
-  };
+  }
+};
+
 
   const handleBack = () => {
     if (step > 0) setStep(step - 1);
@@ -141,7 +142,9 @@ function PreQualification() {
 
         <div className="btn-group">
           <button
-            className={`choice-btn ${answers[step] === "yes" ? "selected" : ""}`}
+            className={`choice-btn ${
+              answers[step] === "yes" ? "selected" : ""
+            }`}
             onClick={() => handleAnswer("yes")}
           >
             ✅ Yes – vendor is compliant
@@ -155,7 +158,11 @@ function PreQualification() {
         </div>
 
         <div className="action-btns">
-          <button className="back-btn" onClick={handleBack} disabled={step === 0}>
+          <button
+            className="back-btn"
+            onClick={handleBack}
+            disabled={step === 0}
+          >
             Back
           </button>
           <button className="next-btn" onClick={handleNext}>

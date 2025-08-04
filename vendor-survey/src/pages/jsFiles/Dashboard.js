@@ -100,7 +100,7 @@ function Dashboard() {
           {/* Evaluation Tools */}
           <div className="section-title">📋 Evaluation Tools</div>
           <div className="dashboard-buttons">
-            <div className="dashboard-card" onClick={handleEvaluateClick}>
+            <div className="dashboard-card-purple" onClick={handleEvaluateClick}>
               <span className="card-icon">✏</span>
               <span className="card-text">Evaluate Vendors</span>
             </div>
@@ -114,7 +114,7 @@ function Dashboard() {
             )}
 
             <div
-              className="dashboard-card"
+              className="dashboard-card-purple"
               onClick={() => navigate("/ScorePage")}
             >
               <span className="card-icon">📊</span>

@@ -86,7 +86,7 @@ function VendorsDashboard() {
 
       {/* Line Chart */}
       <div style={{ width: "100%", height: 300, marginBottom: "2rem" }}>
-        <h3>Performance Over Time (All Vendors)</h3>
+        <h3>Performance (All Vendors)</h3>
         {vendorSeries.length > 0 ? (
           <ResponsiveContainer>
             <LineChart

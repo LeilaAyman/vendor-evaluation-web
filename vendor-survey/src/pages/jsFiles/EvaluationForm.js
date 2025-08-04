@@ -212,29 +212,46 @@ function EvaluationForm() {
             </p>
             <h3 className="question-text">{currentQuestion.text}</h3>
 
-            <div className="score-options">
-              {[1, 2, 3, 4, 5].map((score) => (
-                <div className="score-container" key={score}>
-                  <button
-                    className={`score-circle score-${score} ${
-                      selectedScore === score ? "selected" : ""
-                    }`}
-                    onClick={() => setSelectedScore(score)}
-                  >
-                    {score}
-                  </button>
-                  {(score === 1 || score === 5) && (
-                    <div
-                      className={`score-label ${
-                        score === 1 ? "left" : "right"
+            {currentQuestion.text.includes("monopoly") ? (
+              <div className="score-options">
+                {["Yes", "No"].map((option) => (
+                  <div className="score-container" key={option}>
+                    <button
+                      className={`score-circle ${
+                        selectedScore === option ? "selected" : ""
                       }`}
+                      onClick={() => setSelectedScore(option)}
                     >
-                      {score === 1 ? "Poor" : "Excellent"}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+                      {option}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="score-options">
+                {[1, 2, 3, 4, 5].map((score) => (
+                  <div className="score-container" key={score}>
+                    <button
+                      className={`score-circle score-${score} ${
+                        selectedScore === score ? "selected" : ""
+                      }`}
+                      onClick={() => setSelectedScore(score)}
+                    >
+                      {score}
+                    </button>
+                    {(score === 1 || score === 5) && (
+                      <div
+                        className={`score-label ${
+                          score === 1 ? "left" : "right"
+                        }`}
+                      >
+                        {score === 1 ? "Poor" : "Excellent"}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div className="navigation-buttons">
               <div className="nav-left">
@@ -257,10 +274,20 @@ function EvaluationForm() {
             <button
               className="exit-btn"
               onClick={() => {
-                const confirmExit = window.confirm(
-                  "⚠️ Are you sure you want to exit evaluation? Your current progress will not be saved."
-                );
-                if (confirmExit) navigate("/dashboard");
+                Swal.fire({
+                  title: "Exit Evaluation?",
+                  text: "⚠️ Are you sure you want to exit? Your current progress will not be saved.",
+                  icon: "warning",
+                  showCancelButton: true,
+                  confirmButtonText: "Yes, exit",
+                  cancelButtonText: "No, stay",
+                  confirmButtonColor: "#d33",
+                  cancelButtonColor: "#3085d6",
+                }).then((result) => {
+                  if (result.isConfirmed) {
+                    navigate("/dashboard");
+                  }
+                });
               }}
               style={{
                 marginTop: "30px",
