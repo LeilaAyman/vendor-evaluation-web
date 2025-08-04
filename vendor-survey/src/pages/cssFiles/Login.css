@@ -16,10 +16,13 @@
 
 
 .logo {
-  width: auto;
-  width: 100%;
-  margin-bottom: 20px;
+  display: block;
+  width: 70%;
+  max-width: 300px;
+  height: auto;
+  margin: 0 auto 20px;
 }
+
 
 
 

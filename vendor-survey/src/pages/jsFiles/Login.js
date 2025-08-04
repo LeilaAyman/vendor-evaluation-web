@@ -28,8 +28,7 @@ function Login() {
         message = "🔑 Incorrect password. Please try again.";
       } else if (error.code === "auth/invalid-email") {
         message = "✉️ Invalid email format.";
-      }
-      else{
+      } else {
         message = "🔍 User not found. Please register first.";
       }
       toast.error(message, { duration: 3000 });
@@ -44,7 +43,19 @@ function Login() {
     <div className="login-container">
       <Toaster position="top-right" reverseOrder={false} />
       <div className="left-panel">
-        <img src="/images/iscore-logo.png" alt="Iscore Logo" className="logo" />
+        <img
+          src={require("../../iscore-logo.png")}
+          alt="Logo"
+          style={{
+            width: "70%",
+            maxWidth: "300px",
+            height: "auto",
+            marginBottom: "20px",
+            display: "block",
+            marginLeft: "auto",
+            marginRight: "auto",
+          }}
+        />
       </div>
 
       <div className="right-panel">

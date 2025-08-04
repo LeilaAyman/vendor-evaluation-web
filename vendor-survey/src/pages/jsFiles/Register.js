@@ -32,7 +32,11 @@ function Register() {
     }
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
 
       // Save user info to Firestore
       await setDoc(doc(db, "users", userCredential.user.uid), {
@@ -53,15 +57,22 @@ function Register() {
 
   return (
     <div className="register-page-wrapper">
-      <div className="back-button" onClick={goBack}>
-        ← Back
-      </div>
-
       <div className="register-container">
         <div className="left-panel">
-          <img src="/images/iscore-logo.png" alt="Iscore Logo" className="logo" />
+          <img
+            src={require("../../iscore-logo.png")}
+            alt="Logo"
+            style={{
+              width: "70%",
+              maxWidth: "300px",
+              height: "auto",
+              marginBottom: "20px",
+              display: "block",
+              marginLeft: "auto",
+              marginRight: "auto",
+            }}
+          />
         </div>
-
 
         <div className="right-panel">
           <h2>Create an account</h2>
@@ -70,7 +81,7 @@ function Register() {
               <span className="icon">👤</span>
               <input
                 type="text"
-                placeholder="example example"
+                placeholder="FisrtName LastName"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -144,7 +155,6 @@ function Register() {
                 required
               >
                 <option value="employee">Employee</option>
-                <option value="manager">Manager</option>
                 <option value="admin">Admin</option>
               </select>
             </div>
