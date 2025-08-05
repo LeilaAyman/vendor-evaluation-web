@@ -35,7 +35,7 @@ function NewVendorsStatus() {
         collection(db, "discarded_new_vendors")
       );
 
-      // Cache user info to avoid redundant fetching
+      // Cache user info
       const userSnapshot = await getDocs(collection(db, "users"));
       const userMap = {};
       userSnapshot.docs.forEach((doc) => {
@@ -43,6 +43,7 @@ function NewVendorsStatus() {
         userMap[data.uid] = data.name;
       });
 
+      // Map discarded vendors and collect discarded vendor IDs
       const discarded = discardedSnapshot.docs.map((doc) => {
         const data = doc.data();
         return {
@@ -50,9 +51,10 @@ function NewVendorsStatus() {
           discardedByName: userMap[data.discardedBy] || "Unknown",
         };
       });
-
+      const discardedIds = new Set(discarded.map((v) => v.vendorId));
       setDiscardedVendors(discarded);
 
+      // Map evaluations
       const evalMap = {};
       evaluationsSnapshot.docs.forEach((doc) => {
         const data = doc.data();
@@ -69,9 +71,13 @@ function NewVendorsStatus() {
           evalMap[name].IT.push(totalScores.IT);
       });
 
+      // Approved vendors (excluding discarded)
       const approved = vendorsSnapshot.docs
         .map((doc) => ({ id: doc.id, ...doc.data() }))
-        .filter((v) => v.new === true && v.discarded !== true)
+        .filter(
+          (v) =>
+            v.new === true && v.discarded !== true && !discardedIds.has(v.id) // Exclude if vendor is in discarded list
+        )
         .map((vendor) => {
           const scores = evalMap[vendor.name] || {
             finance: [],
@@ -124,7 +130,7 @@ function NewVendorsStatus() {
       {/* Approved Section */}
       <Divider sx={{ my: 4 }}>
         <Typography variant="h6" fontWeight="bold" color={green[700]}>
-          New Vendors current scores 
+          New Vendors current scores
         </Typography>
       </Divider>
 
@@ -139,7 +145,6 @@ function NewVendorsStatus() {
                 >
                   <CardContent>
                     <Box display="flex" alignItems="center" gap={1} mb={1}>
-                      
                       <Typography variant="h6">{vendor.name}</Typography>
                     </Box>
                     <Chip
