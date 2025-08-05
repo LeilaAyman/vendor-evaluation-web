@@ -28,7 +28,7 @@ function EvaluationIntro() {
 
           <div className="evaluation-content">
             <p className="evaluation-text">
-              This is the <strong>2025 Q2 vendor evaluation</strong>. You are required to submit an evaluation for <strong>5 vendors</strong>.
+              This is the <strong>2025 Q3 vendor evaluation</strong>. You are required to submit an evaluation for <strong>5 vendors</strong>.
             </p>
 
             <button className="start-button" onClick={startEvaluation}>

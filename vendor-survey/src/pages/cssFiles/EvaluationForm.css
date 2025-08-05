@@ -43,6 +43,12 @@
   background-color: #ddd;
 }
 
+.question-text {
+  white-space: pre-wrap;
+  font-size: 18px;
+  line-height: 1.6;
+}
+
 
 
 

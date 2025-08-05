@@ -61,8 +61,9 @@ function EvaluationForm() {
         return (
           qDept === "both" ||
           (qDept.includes("finance") &&
-            (userDept.includes("finance")  || userDept.includes("procurement") )) ||
-          (qDept.includes("it") && userDept.includes("it")  )
+            (userDept.includes("finance") ||
+              userDept.includes("procurement"))) ||
+          (qDept.includes("it") && userDept.includes("it"))
         );
       });
       const grouped = filtered.reduce((acc, q) => {
@@ -201,7 +202,7 @@ function EvaluationForm() {
 
       <div className="eval-content">
         {/* 🔧 DEBUG: Show user department */}
-        
+
         <h5 className="vendor-title">Evaluating: {vendorName}</h5>
 
         {currentQuestion && (
@@ -211,9 +212,11 @@ function EvaluationForm() {
               Question {current + 1} of {questions.length}
             </p>
 
-            
-
-            <h3 className="question-text">{currentQuestion.text}</h3>
+            <div className="question-text">
+              {currentQuestion.text.split("\n").map((line, index) => (
+                <p key={index}>{line}</p>
+              ))}
+            </div>
 
             {currentQuestion.text.toLowerCase().includes("monopoly") ? (
               <div className="score-options">
