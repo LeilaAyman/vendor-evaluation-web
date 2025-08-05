@@ -1,20 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../cssFiles/ScorePage.css";
-import {
-  CircularProgressbar,
-  buildStyles,
-} from "react-circular-progressbar";
+import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../firebase";
 
-// Function to get color based on score
 const getScoreColor = (score) => {
-  if (score < 50) return "#E63946"; // red
-  if (score < 70) return "#F4A261"; // orange
-  if (score < 85) return "#F6C90E"; // yellow
-  return "#2A9D8F"; // green
+  if (score < 50) return "#E63946";
+  if (score < 70) return "#F4A261";
+  if (score < 85) return "#F6C90E";
+  return "#2A9D8F";
 };
 
 function ScorePage() {
@@ -29,19 +25,71 @@ function ScorePage() {
       const vendorMap = {};
 
       evaluations.forEach((evalItem) => {
-        const vendor = evalItem.vendorName;
+        const vendor = evalItem.vendorName?.trim();
+        if (!vendor) return;
+
         if (!vendorMap[vendor]) {
-          vendorMap[vendor] = { total: 0, count: 0 };
+          vendorMap[vendor] = {
+            departmentScores: {
+              both: [],
+              finance: [],
+              IT: [],
+            },
+          };
         }
-        vendorMap[vendor].total += evalItem.totalScore;
-        vendorMap[vendor].count += 1;
+
+        const scores = evalItem.totalScores || {};
+
+        Object.entries(scores).forEach(([dept, score]) => {
+          if (
+            ["both", "finance", "IT"].includes(dept) &&
+            typeof score === "number"
+          ) {
+            vendorMap[vendor].departmentScores[dept].push(score);
+          }
+        });
       });
 
-      const vendorList = Object.entries(vendorMap).map(([name, stats], index) => ({
-        id: (index + 1).toString().padStart(2, "0"),
-        name,
-        score: Math.round(stats.total / stats.count),
-      }));
+      const vendorList = Object.entries(vendorMap).map(
+        ([name, data], index) => {
+          const { both, finance, IT } = data.departmentScores;
+
+          const MAX_SCORES = {
+            both: 25,
+            finance: 30,
+            IT: 35,
+          };
+
+          // Average per department
+          const avg = (arr) =>
+            arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+
+          const bothAvg = avg(both);
+          const financeAvg = avg(finance);
+          const itAvg = avg(IT);
+
+          // Normalize to percentages
+          const bothPct = bothAvg > 0 ? (bothAvg / MAX_SCORES.both) * 100 : 0;
+          const financePct =
+            financeAvg > 0 ? (financeAvg / MAX_SCORES.finance) * 100 : 0;
+          const itPct = itAvg > 0 ? (itAvg / MAX_SCORES.IT) * 100 : 0;
+
+          // Average only the present percentages
+          const percentList = [bothPct, financePct, itPct].filter((p) => p > 0);
+          const totalScore =
+            percentList.length > 0
+              ? Math.round(
+                  percentList.reduce((a, b) => a + b, 0) / percentList.length
+                )
+              : 0;
+
+          return {
+            id: (index + 1).toString().padStart(2, "0"),
+            name,
+            score: totalScore,
+          };
+        }
+      );
 
       setVendors(vendorList);
     };
@@ -54,8 +102,17 @@ function ScorePage() {
       <div className="score-container">
         <div className="score-header">
           <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-            <button className="back-arrow" onClick={() => navigate("/dashboard")}>←</button>
-            <img src="/images/iscore-logo.png" alt="Iscore Logo" className="score-logo" />
+            <button
+              className="back-arrow"
+              onClick={() => navigate("/dashboard")}
+            >
+              ←
+            </button>
+            <img
+              src="/images/iscore-logo.png"
+              alt="Iscore Logo"
+              className="score-logo"
+            />
           </div>
           <button
             className="dashboard-btn"

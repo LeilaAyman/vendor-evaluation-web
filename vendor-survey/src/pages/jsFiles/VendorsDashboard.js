@@ -15,9 +15,15 @@ import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../firebase";
 import "../cssFiles/VendorsDashboard.css";
 
+const MAX_SCORES = {
+  finance: 30,
+  both: 25,
+  IT: 35,
+};
+
 function VendorsDashboard() {
   const [evaluations, setEvaluations] = useState([]);
-  const [avgScores, setAvgScores] = useState([]);
+  const [vendorStats, setVendorStats] = useState([]);
   const [vendorSeries, setVendorSeries] = useState([]);
 
   useEffect(() => {
@@ -25,39 +31,87 @@ function VendorsDashboard() {
       const snapshot = await getDocs(collection(db, "evaluations"));
       const allEvals = snapshot.docs.map((doc) => {
         const data = doc.data();
+        const { totalScores = {} } = data;
+
         return {
           vendorName: data.vendorName,
           evaluator: data.evaluatorName || "Unknown",
-          totalScore: data.totalScore,
           createdAt: data.submittedAt?.toDate().toISOString().split("T")[0],
+          departmentScores: {
+            both: totalScores.both ?? 0,
+            finance: totalScores.finance ?? 0,
+            IT: totalScores.IT ?? 0,
+          },
         };
       });
 
       setEvaluations(allEvals);
 
+      // Vendor-wise aggregation
       const vendorMap = {};
       allEvals.forEach((e) => {
         const vendor = e.vendorName;
         if (!vendorMap[vendor]) {
-          vendorMap[vendor] = { total: 0, count: 0 };
+          vendorMap[vendor] = {
+            financeTotal: 0,
+            financeCount: 0,
+            bothTotal: 0,
+            bothCount: 0,
+            itTotal: 0,
+            itCount: 0,
+          };
         }
-        vendorMap[vendor].total += e.totalScore;
-        vendorMap[vendor].count += 1;
+
+        const { finance, both, IT } = e.departmentScores;
+
+        if (finance > 0) {
+          vendorMap[vendor].financeTotal += (finance / MAX_SCORES.finance) * 100;
+          vendorMap[vendor].financeCount += 1;
+        }
+        if (both > 0) {
+          vendorMap[vendor].bothTotal += (both / MAX_SCORES.both) * 100;
+          vendorMap[vendor].bothCount += 1;
+        }
+        if (IT > 0) {
+          vendorMap[vendor].itTotal += (IT / MAX_SCORES.IT) * 100;
+          vendorMap[vendor].itCount += 1;
+        }
       });
 
       const scoreData = Object.entries(vendorMap).map(([vendorName, stats]) => ({
         vendorName,
-        avgScore: parseFloat((stats.total / stats.count).toFixed(2)),
-        evaluations: stats.count,
+        financeAvg:
+          stats.financeCount > 0
+            ? parseFloat((stats.financeTotal / stats.financeCount).toFixed(2))
+            : 0,
+        bothAvg:
+          stats.bothCount > 0
+            ? parseFloat((stats.bothTotal / stats.bothCount).toFixed(2))
+            : 0,
+        itAvg:
+          stats.itCount > 0
+            ? parseFloat((stats.itTotal / stats.itCount).toFixed(2))
+            : 0,
+        evaluations:
+          stats.financeCount + stats.bothCount + stats.itCount,
       }));
 
-      setAvgScores(scoreData);
+      setVendorStats(scoreData);
 
-      // Create time-series data grouped by date per vendor
+      // Grouped time-series data for line chart (totalScore trends)
       const dateVendorMap = {};
-      allEvals.forEach(({ vendorName, createdAt, totalScore }) => {
+      allEvals.forEach(({ vendorName, createdAt, departmentScores }) => {
+        const { finance, both, IT } = departmentScores;
+        const totalScore =
+          (finance / MAX_SCORES.finance || 0) * 100 +
+          (both / MAX_SCORES.both || 0) * 100 +
+          (IT / MAX_SCORES.IT || 0) * 100;
+
+        const presentDepts = [finance > 0, both > 0, IT > 0].filter(Boolean).length;
+        const normalized = presentDepts > 0 ? totalScore / presentDepts : 0;
+
         if (!dateVendorMap[createdAt]) dateVendorMap[createdAt] = {};
-        dateVendorMap[createdAt][vendorName] = totalScore;
+        dateVendorMap[createdAt][vendorName] = parseFloat(normalized.toFixed(2));
       });
 
       const chartData = Object.entries(dateVendorMap).map(([date, vendors]) => ({
@@ -76,9 +130,7 @@ function VendorsDashboard() {
     "#C9CBCF", "#8DD1E1", "#FFB6B9", "#B6E2D3",
   ];
 
-  const uniqueVendors = [
-    ...new Set(evaluations.map((e) => e.vendorName)),
-  ];
+  const uniqueVendors = [...new Set(evaluations.map((e) => e.vendorName))];
 
   return (
     <div className="vendors-dashboard-wrapper">
@@ -86,7 +138,7 @@ function VendorsDashboard() {
 
       {/* Line Chart */}
       <div style={{ width: "100%", height: 300, marginBottom: "2rem" }}>
-        <h3>Performance (All Vendors)</h3>
+        <h3>Performance Trend Over Time (Total Normalized %)</h3>
         {vendorSeries.length > 0 ? (
           <ResponsiveContainer>
             <LineChart
@@ -116,28 +168,28 @@ function VendorsDashboard() {
         )}
       </div>
 
-      {/* Bar Chart */}
-      <div style={{ width: "100%", height: 300, marginBottom: "2rem" }}>
-        <h3>Average Score Per Vendor</h3>
-        {avgScores.length > 0 ? (
+      {/* Grouped Bar Chart */}
+      <div style={{ width: "100%", height: 350, marginBottom: "2rem" }}>
+        <h3>Department-Wise Average Scores (Normalized %)</h3>
+        {vendorStats.length > 0 ? (
           <ResponsiveContainer>
-            <BarChart data={avgScores}>
+            <BarChart
+              data={vendorStats}
+              margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+            >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="vendorName" />
               <YAxis domain={[0, 100]} />
               <Tooltip />
               <Legend />
-              <Bar
-                dataKey="avgScore"
-                fill="#3CBFC1"
-                name="Average Score"
-                barSize={50}
-              />
+              <Bar dataKey="financeAvg" fill="#82ca9d" name="Finance" />
+              <Bar dataKey="bothAvg" fill="#8884d8" name="Both" />
+              <Bar dataKey="itAvg" fill="#ff6f61" name="IT" />
             </BarChart>
           </ResponsiveContainer>
         ) : (
           <p style={{ textAlign: "center", color: "#999" }}>
-            No average score data.
+            No department data available.
           </p>
         )}
       </div>
@@ -149,16 +201,20 @@ function VendorsDashboard() {
             <tr>
               <th>#</th>
               <th>Vendor Name</th>
-              <th>Average Score</th>
+              <th>Finance Avg (%)</th>
+              <th>Both Avg (%)</th>
+              <th>IT Avg (%)</th>
               <th>Evaluations Count</th>
             </tr>
           </thead>
           <tbody>
-            {avgScores.map((vendor, index) => (
+            {vendorStats.map((vendor, index) => (
               <tr key={index}>
                 <td>{index + 1}</td>
                 <td>{vendor.vendorName}</td>
-                <td>{vendor.avgScore}</td>
+                <td>{vendor.financeAvg}</td>
+                <td>{vendor.bothAvg}</td>
+                <td>{vendor.itAvg}</td>
                 <td>{vendor.evaluations}</td>
               </tr>
             ))}

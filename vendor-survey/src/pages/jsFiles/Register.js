@@ -137,13 +137,23 @@ function Register() {
 
             <div className="input-group">
               <span className="icon">🏢</span>
-              <input
-                type="text"
-                placeholder="Department (e.g. HR, IT)"
-                required
+              <select
                 value={department}
                 onChange={(e) => setDepartment(e.target.value)}
-              />
+                required
+              >
+                <option value="" disabled>
+                  Select Department
+                </option>
+                <option value="IT">IT</option>
+                <option value="Finance">
+                  Finance
+                </option>
+                <option value="Procurement">
+                 Procurement
+                </option>
+                <option value="Other">Other</option>
+              </select>
             </div>
 
             {/* NEW: Type Dropdown */}

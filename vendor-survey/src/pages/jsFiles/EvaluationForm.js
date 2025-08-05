@@ -19,6 +19,7 @@ function EvaluationForm() {
   const [responses, setResponses] = useState({});
   const [selectedScore, setSelectedScore] = useState(null);
   const [accessDenied, setAccessDenied] = useState(false);
+  const [userDepartment, setUserDepartment] = useState("");
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -28,6 +29,8 @@ function EvaluationForm() {
         return;
       }
 
+      setUserDepartment(userData.department);
+
       const existingSnap = await getDocs(collection(db, "existing questions"));
       const existingQuestions = existingSnap.docs.map((doc, idx) => ({
         id: doc.id,
@@ -35,6 +38,7 @@ function EvaluationForm() {
         weight: doc.data().weight || 1,
         criteria: doc.data().criteria || "Uncategorized",
         source: "existing",
+        department: doc.data().department || "Uncategorized",
         order: idx,
       }));
 
@@ -45,11 +49,23 @@ function EvaluationForm() {
         weight: doc.data().weight || 1,
         criteria: doc.data().criteria || "Uncategorized",
         source: "existing_and_new",
+        department: doc.data().department || "Uncategorized",
         order: existingQuestions.length + idx,
       }));
 
       const combined = [...existingQuestions, ...allQuestions];
-      const grouped = combined.reduce((acc, q) => {
+      const userDept = (userData.department || "").toLowerCase();
+
+      const filtered = combined.filter((q) => {
+        const qDept = (q.department || "").toLowerCase();
+        return (
+          qDept === "both" ||
+          (qDept.includes("finance") &&
+            (userDept.includes("finance")  || userDept.includes("procurement") )) ||
+          (qDept.includes("it") && userDept.includes("it")  )
+        );
+      });
+      const grouped = filtered.reduce((acc, q) => {
         const key = q.criteria;
         acc[key] = acc[key] || [];
         acc[key].push(q);
@@ -84,6 +100,7 @@ function EvaluationForm() {
         score: selectedScore,
         weight: currentQ.weight,
         text: currentQ.text,
+        department: currentQ.department,
       },
     };
 
@@ -114,10 +131,13 @@ function EvaluationForm() {
         console.error("Could not fetch evaluator name:", err);
       }
 
-      const totalScore = Object.values(updatedResponses).reduce((acc, item) => {
-        const weighted = (item.score / 5) * item.weight;
-        return acc + weighted;
-      }, 0);
+      const totalByDepartment = {};
+      Object.values(updatedResponses).forEach((item) => {
+        const dept = item.department || "both";
+        const weighted =
+          typeof item.score === "number" ? (item.score / 5) * item.weight : 0;
+        totalByDepartment[dept] = (totalByDepartment[dept] || 0) + weighted;
+      });
 
       const evaluationData = {
         userId: user.uid,
@@ -125,7 +145,7 @@ function EvaluationForm() {
         vendorId,
         vendorName,
         responses: updatedResponses,
-        totalScore: parseFloat(totalScore.toFixed(2)),
+        totalScores: totalByDepartment,
         submittedAt: new Date(),
       };
 
@@ -141,10 +161,7 @@ function EvaluationForm() {
           cancelButtonColor: "#d33",
         }).then(async (result) => {
           if (result.isConfirmed) {
-            // Submit to Firestore
             await addDoc(collection(db, "evaluations"), evaluationData);
-
-            // Show confirmation
             Swal.fire({
               icon: "success",
               title: "Submitted!",
@@ -165,30 +182,10 @@ function EvaluationForm() {
 
   const currentQuestion = questions[current];
 
-  if (accessDenied) {
-    return (
-      <div className="eval-wrapper">
-        <Toaster position="top-center" reverseOrder={false} />
-        <div
-          className="eval-content"
-          style={{ textAlign: "center", padding: "50px" }}
-        >
-          <h2>❌ Access Denied</h2>
-          <p>You do not have permission to evaluate vendors.</p>
-          <button
-            onClick={() => navigate("/dashboard")}
-            style={{ marginTop: "20px" }}
-          >
-            Return to Dashboard
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="eval-wrapper">
       <Toaster position="top-center" reverseOrder={false} />
+
       <div className="eval-sidebar">
         <img src="/images/iscore-logo.png" alt="logo" className="logo" />
         {questions.map((q, i) => (
@@ -203,16 +200,22 @@ function EvaluationForm() {
       </div>
 
       <div className="eval-content">
+        {/* 🔧 DEBUG: Show user department */}
+        
         <h5 className="vendor-title">Evaluating: {vendorName}</h5>
+
         {currentQuestion && (
           <>
             <h5 className="criteria-label">{currentQuestion.criteria}</h5>
             <p className="question-number">
               Question {current + 1} of {questions.length}
             </p>
+
+            
+
             <h3 className="question-text">{currentQuestion.text}</h3>
 
-            {currentQuestion.text.includes("monopoly") ? (
+            {currentQuestion.text.toLowerCase().includes("monopoly") ? (
               <div className="score-options">
                 {["Yes", "No"].map((option) => (
                   <div className="score-container" key={option}>
@@ -306,5 +309,4 @@ function EvaluationForm() {
     </div>
   );
 }
-
 export default EvaluationForm;

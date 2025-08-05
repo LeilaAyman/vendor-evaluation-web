@@ -17,17 +17,18 @@ function Profile() {
           const userRef = doc(db, "users", currentUser.uid);
           const userSnap = await getDoc(userRef);
           if (userSnap.exists()) {
-           setUserData({
-  name: userSnap.data().name || "Not Set",
-  role: userSnap.data().type || "user", // 🔧 fix here
-  email: currentUser.email,
-});
-          
+            const data = userSnap.data();
+            setUserData({
+              name: data.name || "Not Set",
+              role: data.type || "user",
+              department: data.department || "Not Set",
+              email: currentUser.email,
+            });
           } else {
-            // Fallback if Firestore user doc doesn't exist
             setUserData({
               name: "Unknown",
               role: "Not Assigned",
+              department: "Unknown",
               email: currentUser.email,
             });
           }
@@ -52,6 +53,7 @@ function Profile() {
       <p><strong>Name:</strong> {userData?.name}</p>
       <p><strong>Email:</strong> {userData?.email}</p>
       <p><strong>Role:</strong> {userData?.role}</p>
+      <p><strong>Department:</strong> {userData?.department}</p>
     </div>
   );
 }
