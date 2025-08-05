@@ -19,14 +19,26 @@ function ScorePage() {
 
   useEffect(() => {
     const fetchScores = async () => {
-      const snapshot = await getDocs(collection(db, "evaluations"));
-      const evaluations = snapshot.docs.map((doc) => doc.data());
+      const [evaluationsSnap, vendorsSnap] = await Promise.all([
+        getDocs(collection(db, "evaluations")),
+        getDocs(collection(db, "vendors")),
+      ]);
+
+      const evaluations = evaluationsSnap.docs.map((doc) => doc.data());
+
+      // Build a set of vendors that are NOT new
+      const nonNewVendorsSet = new Set(
+        vendorsSnap.docs
+          .map((doc) => doc.data())
+          .filter((vendor) => vendor.new !== true)
+          .map((vendor) => vendor.name?.trim())
+      );
 
       const vendorMap = {};
 
       evaluations.forEach((evalItem) => {
         const vendor = evalItem.vendorName?.trim();
-        if (!vendor) return;
+        if (!vendor || !nonNewVendorsSet.has(vendor)) return;
 
         if (!vendorMap[vendor]) {
           vendorMap[vendor] = {
@@ -60,7 +72,6 @@ function ScorePage() {
             IT: 35,
           };
 
-          // Average per department
           const avg = (arr) =>
             arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
 
@@ -68,13 +79,11 @@ function ScorePage() {
           const financeAvg = avg(finance);
           const itAvg = avg(IT);
 
-          // Normalize to percentages
           const bothPct = bothAvg > 0 ? (bothAvg / MAX_SCORES.both) * 100 : 0;
           const financePct =
             financeAvg > 0 ? (financeAvg / MAX_SCORES.finance) * 100 : 0;
           const itPct = itAvg > 0 ? (itAvg / MAX_SCORES.IT) * 100 : 0;
 
-          // Average only the present percentages
           const percentList = [bothPct, financePct, itPct].filter((p) => p > 0);
           const totalScore =
             percentList.length > 0

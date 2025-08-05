@@ -28,22 +28,35 @@ function VendorsDashboard() {
 
   useEffect(() => {
     const fetchEvaluations = async () => {
-      const snapshot = await getDocs(collection(db, "evaluations"));
-      const allEvals = snapshot.docs.map((doc) => {
-        const data = doc.data();
-        const { totalScores = {} } = data;
+      const [evaluationsSnap, vendorsSnap] = await Promise.all([
+        getDocs(collection(db, "evaluations")),
+        getDocs(collection(db, "vendors")),
+      ]);
 
-        return {
-          vendorName: data.vendorName,
-          evaluator: data.evaluatorName || "Unknown",
-          createdAt: data.submittedAt?.toDate().toISOString().split("T")[0],
-          departmentScores: {
-            both: totalScores.both ?? 0,
-            finance: totalScores.finance ?? 0,
-            IT: totalScores.IT ?? 0,
-          },
-        };
-      });
+      const nonNewVendors = new Set(
+        vendorsSnap.docs
+          .map((doc) => doc.data())
+          .filter((v) => v.new !== true)
+          .map((v) => v.name?.trim())
+      );
+
+      const allEvals = evaluationsSnap.docs
+        .map((doc) => {
+          const data = doc.data();
+          const { totalScores = {} } = data;
+
+          return {
+            vendorName: data.vendorName?.trim(),
+            evaluator: data.evaluatorName || "Unknown",
+            createdAt: data.submittedAt?.toDate().toISOString().split("T")[0],
+            departmentScores: {
+              both: totalScores.both ?? 0,
+              finance: totalScores.finance ?? 0,
+              IT: totalScores.IT ?? 0,
+            },
+          };
+        })
+        .filter((e) => nonNewVendors.has(e.vendorName));
 
       setEvaluations(allEvals);
 
@@ -92,8 +105,7 @@ function VendorsDashboard() {
           stats.itCount > 0
             ? parseFloat((stats.itTotal / stats.itCount).toFixed(2))
             : 0,
-        evaluations:
-          stats.financeCount + stats.bothCount + stats.itCount,
+        evaluations: stats.financeCount + stats.bothCount + stats.itCount,
       }));
 
       setVendorStats(scoreData);

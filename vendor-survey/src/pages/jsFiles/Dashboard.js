@@ -150,6 +150,13 @@ function Dashboard() {
                   <span className="card-icon">➕</span>
                   <span className="card-text">Add New Vendor</span>
                 </div>
+                <div
+                  className="dashboard-card"
+                  //onClick={() => navigate("/new-vendor-entry")}
+                >
+                  <span className="card-icon">🧭</span>
+                  <span className="card-text">New Vendors Status</span>
+                </div>
               </div>
             </>
           )}
