@@ -152,7 +152,7 @@ function Dashboard() {
                 </div>
                 <div
                   className="dashboard-card"
-                  //onClick={() => navigate("/new-vendor-entry")}
+                  onClick={() => navigate("/new-vendor-status")}
                 >
                   <span className="card-icon">🧭</span>
                   <span className="card-text">New Vendors Status</span>

@@ -1,0 +1,21 @@
+.new-vendors-status-page {
+  padding: 2rem;
+  font-family: Arial, sans-serif;
+}
+
+.vendors-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 2rem;
+}
+
+.vendors-table th,
+.vendors-table td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: center;
+}
+
+.vendors-table th {
+  background-color: #f0f0f0;
+}
