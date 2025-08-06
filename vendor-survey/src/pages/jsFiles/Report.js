@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
 import {
-  LineChart,
-  Line,
   BarChart,
   Bar,
   XAxis,
@@ -10,6 +8,7 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  LabelList,
 } from "recharts";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../firebase";
@@ -22,7 +21,6 @@ const MAX_SCORES = {
   IT: 35,
 };
 
-// Helper to get query param
 const useQuery = () => {
   return new URLSearchParams(useLocation().search);
 };
@@ -30,41 +28,46 @@ const useQuery = () => {
 function Report() {
   const [evaluations, setEvaluations] = useState([]);
   const [avgScore, setAvgScore] = useState(null);
-  const [deptBreakdown, setDeptBreakdown] = useState(null);
+  const [deptBarData, setDeptBarData] = useState([]);
+  const [lowestDepts, setLowestDepts] = useState([]);
+  const [quarterlyData, setQuarterlyData] = useState([]);
   const query = useQuery();
   const vendorName = query.get("vendor");
 
   useEffect(() => {
     const fetchEvaluations = async () => {
       const snapshot = await getDocs(collection(db, "evaluations"));
-      const allEvals = snapshot.docs.map((doc) => {
+
+      const parsedEvals = snapshot.docs.map((doc) => {
         const data = doc.data();
         const { totalScores = {} } = data;
+        const date = data.submittedAt?.toDate();
+
+        const norm = (value, max) =>
+          value ? ((value / max) * 100).toFixed(2) : "0.00";
 
         return {
           vendorName: data.vendorName,
           evaluator: data.evaluatorName || "Unknown",
-          createdAt: data.submittedAt?.toDate().toISOString().split("T")[0],
+          createdAt: date ? date.toISOString().split("T")[0] : "Unknown",
           departmentScores: {
             both: totalScores.both ?? 0,
             finance: totalScores.finance ?? 0,
             IT: totalScores.IT ?? 0,
             normalized: {
-              both: totalScores.both
-                ? ((totalScores.both / MAX_SCORES.both) * 100).toFixed(2)
-                : "0.00",
-              finance: totalScores.finance
-                ? ((totalScores.finance / MAX_SCORES.finance) * 100).toFixed(2)
-                : "0.00",
-              IT: totalScores.IT
-                ? ((totalScores.IT / MAX_SCORES.IT) * 100).toFixed(2)
-                : "0.00",
+              both: norm(totalScores.both, MAX_SCORES.both),
+              finance: norm(totalScores.finance, MAX_SCORES.finance),
+              IT: norm(totalScores.IT, MAX_SCORES.IT),
             },
           },
+          totalScore:
+            (totalScores.both ?? 0) +
+            (totalScores.finance ?? 0) +
+            (totalScores.IT ?? 0),
         };
       });
 
-      const vendorEvals = allEvals.filter(
+      const vendorEvals = parsedEvals.filter(
         (e) =>
           e.vendorName?.toLowerCase().trim() ===
           vendorName?.toLowerCase().trim()
@@ -72,42 +75,76 @@ function Report() {
 
       setEvaluations(vendorEvals);
 
-      let totalPercentages = {
-        both: 0,
-        finance: 0,
-        IT: 0,
-      };
-      let counts = {
-        both: 0,
-        finance: 0,
-        IT: 0,
-      };
+      const totals = { both: 0, finance: 0, IT: 0 };
+      const counts = { both: 0, finance: 0, IT: 0 };
 
       vendorEvals.forEach((e) => {
-        for (let dept of ["both", "finance", "IT"]) {
-          const rawScore = e.departmentScores[dept];
-          const max = MAX_SCORES[dept];
-          if (rawScore > 0) {
-            totalPercentages[dept] += (rawScore / max) * 100;
+        for (const dept of Object.keys(MAX_SCORES)) {
+          const score = e.departmentScores[dept];
+          if (score > 0) {
+            totals[dept] += (score / MAX_SCORES[dept]) * 100;
             counts[dept]++;
           }
         }
       });
 
-      const deptAvgs = Object.entries(totalPercentages).map(([dept, sum]) => {
-        return counts[dept] > 0 ? sum / counts[dept] : 0;
+      // Per-department average
+      const deptAverages = Object.keys(MAX_SCORES).map((dept) => {
+        const average =
+          counts[dept] > 0 ? totals[dept] / counts[dept] : 0;
+        return {
+          department: dept,
+          avg: parseFloat(average.toFixed(2)),
+        };
       });
 
-      const activeDepts = deptAvgs.filter((v) => v > 0);
-      const finalAvg =
-        activeDepts.length > 0
-          ? (
-              activeDepts.reduce((a, b) => a + b, 0) / activeDepts.length
-            ).toFixed(2)
-          : null;
+      setDeptBarData(
+        deptAverages.map((d) => ({
+          department: d.department.charAt(0).toUpperCase() + d.department.slice(1),
+          avg: d.avg,
+        }))
+      );
 
-      setAvgScore(finalAvg);
-      setDeptBreakdown({ totalPercentages, counts });
+      // Overall average
+      const activeScores = deptAverages
+        .map((d) => d.avg)
+        .filter((v) => v > 0);
+      const overallAvg =
+        activeScores.length > 0
+          ? (activeScores.reduce((a, b) => a + b, 0) / activeScores.length).toFixed(2)
+          : null;
+      setAvgScore(overallAvg);
+
+      // Find lowest scoring departments (below 60%)
+      const low = deptAverages.filter((d) => d.avg > 0 && d.avg < 60);
+      setLowestDepts(low);
+
+      // === Quarterly Average Chart ===
+      const quarterStats = {};
+      vendorEvals.forEach((e) => {
+        const date = new Date(e.createdAt);
+        const quarter = ["Q1", "Q2", "Q3", "Q4"][
+          Math.floor(date.getMonth() / 3)
+        ];
+
+        if (!quarterStats[quarter]) {
+          quarterStats[quarter] = { sum: 0, count: 0 };
+        }
+        quarterStats[quarter].sum += e.totalScore;
+        quarterStats[quarter].count += 1;
+      });
+
+      const quarters = ["Q1", "Q2", "Q3", "Q4"];
+      const quarterAvgData = quarters.map((q) => ({
+        quarter: q,
+        avgScore: quarterStats[q]
+          ? parseFloat(
+              (quarterStats[q].sum / quarterStats[q].count).toFixed(2)
+            )
+          : 0,
+      }));
+
+      setQuarterlyData(quarterAvgData);
     };
 
     fetchEvaluations();
@@ -117,59 +154,30 @@ function Report() {
     <div className="report-container">
       <h2 className="report-title">Report for: {vendorName}</h2>
 
-      {/* Line Chart */}
+      {/* Quarterly Evaluation Scores */}
       <div style={{ width: "100%", height: 300, marginBottom: "2rem" }}>
-        <h3>Performance</h3>
-        {evaluations.length > 0 ? (
-          <ResponsiveContainer>
-            <LineChart
-              data={evaluations}
-              margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="createdAt" />
-              <YAxis domain={[0, 100]} />
-              <Tooltip />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="departmentScores.both"
-                stroke="#8884d8"
-                name="Both Dept"
-              />
-              <Line
-                type="monotone"
-                dataKey="departmentScores.finance"
-                stroke="#82ca9d"
-                name="Finance Dept"
-              />
-              <Line
-                type="monotone"
-                dataKey="departmentScores.IT"
-                stroke="#ff6f61"
-                name="IT Dept"
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        ) : (
-          <p style={{ textAlign: "center", color: "#999" }}>
-            No evaluation data available.
-          </p>
-        )}
+        <h3>Average Evaluation Score by Quarter</h3>
+        <ResponsiveContainer>
+          <BarChart data={quarterlyData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="quarter" />
+            <YAxis domain={[0, 100]} />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="avgScore" fill="#0088FE" name="Avg Score">
+              <LabelList dataKey="avgScore" position="top" formatter={(v) => `${v}%`} />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
       </div>
 
-      {/* Average Score Bar Chart */}
+      {/* Overall Average Bar */}
       <div style={{ width: "100%", height: 200, marginBottom: "2rem" }}>
-        <h3>Average Evaluation Score</h3>
+        <h3>Overall Average Score</h3>
         {avgScore ? (
           <ResponsiveContainer>
             <BarChart
-              data={[
-                {
-                  vendorName: vendorName,
-                  avgScore: parseFloat(avgScore),
-                },
-              ]}
+              data={[{ vendorName: vendorName, avgScore: parseFloat(avgScore) }]}
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="vendorName" />
@@ -181,6 +189,7 @@ function Report() {
                 fill="#82ca9d"
                 name="Average Score"
                 barSize={50}
+                label={{ position: "top", formatter: (val) => `${val}%` }}
               />
             </BarChart>
           </ResponsiveContainer>
@@ -191,59 +200,38 @@ function Report() {
         )}
       </div>
 
-      {/* Department Breakdown Chart */}
-      {deptBreakdown && (
-        <div style={{ width: "100%", height: 250, marginBottom: "2rem" }}>
-          <h3>Department-Wise Average Scores</h3>
-          <ResponsiveContainer>
-            <BarChart
-              data={[
-                {
-                  department: "Both",
-                  avg:
-                    deptBreakdown.counts.both > 0
-                      ? parseFloat(
-                          (
-                            deptBreakdown.totalPercentages.both /
-                            deptBreakdown.counts.both
-                          ).toFixed(2)
-                        )
-                      : 0,
-                },
-                {
-                  department: "Finance",
-                  avg:
-                    deptBreakdown.counts.finance > 0
-                      ? parseFloat(
-                          (
-                            deptBreakdown.totalPercentages.finance /
-                            deptBreakdown.counts.finance
-                          ).toFixed(2)
-                        )
-                      : 0,
-                },
-                {
-                  department: "IT",
-                  avg:
-                    deptBreakdown.counts.IT > 0
-                      ? parseFloat(
-                          (
-                            deptBreakdown.totalPercentages.IT /
-                            deptBreakdown.counts.IT
-                          ).toFixed(2)
-                        )
-                      : 0,
-                },
-              ]}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="department" />
-              <YAxis domain={[0, 100]} />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="avg" fill="#4F3795" name="Avg %" barSize={50} />
-            </BarChart>
-          </ResponsiveContainer>
+      {/* Department Breakdown */}
+      <div style={{ width: "100%", height: 250, marginBottom: "2rem" }}>
+        <h3>Department-Wise Average Scores</h3>
+        <ResponsiveContainer>
+          <BarChart data={deptBarData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="department" />
+            <YAxis domain={[0, 100]} />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="avg" fill="#4F3795" name="Avg %" barSize={50}>
+              <LabelList dataKey="avg" position="top" formatter={(v) => `${v}%`} />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Department Weakness Analysis */}
+      {lowestDepts.length > 0 && (
+        <div style={{ marginBottom: "2rem" }}>
+          <h3>Department-Level Weaknesses</h3>
+          <p>
+            Despite an acceptable overall score, the following departments had
+            notably low average scores (below 60%):
+          </p>
+          <ul>
+            {lowestDepts.map((d, i) => (
+              <li key={i}>
+                <strong>{d.department.toUpperCase()}:</strong> {d.avg}% — Needs improvement
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 
