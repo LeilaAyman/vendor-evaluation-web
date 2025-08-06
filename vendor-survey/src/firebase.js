@@ -1,15 +1,23 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+console.log("Loaded API Key:", process.env.REACT_APP_FIREBASE_API_KEY);
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBz2Q5VUEjo1km59VmSlgjp5OfxXcx80O0",
-  authDomain: "vendor-evaluation-ee39e.firebaseapp.com",
-  projectId: "vendor-evaluation-ee39e",
-  storageBucket: "vendor-evaluation-ee39e.firebasestorage.app",
-  messagingSenderId: "864017817172",
-  appId: "1:864017817172:web:54cc6d3bcbb80eccefd7c1",
-  measurementId: "G-XNPYL40CL2"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
 };
+console.log("FIREBASE DEBUG CONFIG", {
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+});
 
-export const app = initializeApp(firebaseConfig); 
-export const db = getFirestore(app);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+export { app, db };

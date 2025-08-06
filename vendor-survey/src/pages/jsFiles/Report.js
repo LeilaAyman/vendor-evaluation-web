@@ -76,7 +76,7 @@ function Report() {
 
       setEvaluations(vendorEvals);
 
-      // Department average chart
+      // === Department Average Chart ===
       const totals = { both: 0, finance: 0, IT: 0 };
       const counts = { both: 0, finance: 0, IT: 0 };
 
@@ -91,8 +91,7 @@ function Report() {
       });
 
       const deptAverages = Object.keys(MAX_SCORES).map((dept) => {
-        const average =
-          counts[dept] > 0 ? totals[dept] / counts[dept] : 0;
+        const average = counts[dept] > 0 ? totals[dept] / counts[dept] : 0;
         return {
           department: dept,
           avg: parseFloat(average.toFixed(2)),
@@ -106,7 +105,7 @@ function Report() {
         }))
       );
 
-      // ✅ NEW: Calculate overall average like quarterly — based on normalized per evaluation
+      // === Overall Normalized Average ===
       const normalizedEvalAverages = vendorEvals.map((e) => {
         const scores = Object.keys(MAX_SCORES)
           .map((dept) => parseFloat(e.departmentScores.normalized[dept]))
@@ -154,13 +153,12 @@ function Report() {
         summary,
       });
 
-      // Quarterly chart
+      // === Quarterly Normalized Evaluation Averages ===
       const quarterStats = {};
+
       vendorEvals.forEach((e) => {
         const date = new Date(e.createdAt);
-        const quarter = ["Q1", "Q2", "Q3", "Q4"][
-          Math.floor(date.getMonth() / 3)
-        ];
+        const quarter = ["Q1", "Q2", "Q3", "Q4"][Math.floor(date.getMonth() / 3)];
 
         const normalizedScores = Object.keys(MAX_SCORES)
           .map((dept) => parseFloat(e.departmentScores.normalized[dept]))
