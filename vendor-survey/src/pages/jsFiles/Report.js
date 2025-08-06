@@ -21,9 +21,7 @@ const MAX_SCORES = {
   IT: 35,
 };
 
-const useQuery = () => {
-  return new URLSearchParams(useLocation().search);
-};
+const useQuery = () => new URLSearchParams(useLocation().search);
 
 function Report() {
   const [evaluations, setEvaluations] = useState([]);
@@ -31,6 +29,13 @@ function Report() {
   const [deptBarData, setDeptBarData] = useState([]);
   const [lowestDepts, setLowestDepts] = useState([]);
   const [quarterlyData, setQuarterlyData] = useState([]);
+  const [insights, setInsights] = useState({
+    totalEvals: 0,
+    bestDept: null,
+    weakestDept: null,
+    summary: "",
+  });
+
   const query = useQuery();
   const vendorName = query.get("vendor");
 
@@ -38,13 +43,13 @@ function Report() {
     const fetchEvaluations = async () => {
       const snapshot = await getDocs(collection(db, "evaluations"));
 
+      const norm = (value, max) =>
+        value ? ((value / max) * 100).toFixed(2) : "0.00";
+
       const parsedEvals = snapshot.docs.map((doc) => {
         const data = doc.data();
         const { totalScores = {} } = data;
         const date = data.submittedAt?.toDate();
-
-        const norm = (value, max) =>
-          value ? ((value / max) * 100).toFixed(2) : "0.00";
 
         return {
           vendorName: data.vendorName,
@@ -60,10 +65,6 @@ function Report() {
               IT: norm(totalScores.IT, MAX_SCORES.IT),
             },
           },
-          totalScore:
-            (totalScores.both ?? 0) +
-            (totalScores.finance ?? 0) +
-            (totalScores.IT ?? 0),
         };
       });
 
@@ -75,6 +76,7 @@ function Report() {
 
       setEvaluations(vendorEvals);
 
+      // Department average chart
       const totals = { both: 0, finance: 0, IT: 0 };
       const counts = { both: 0, finance: 0, IT: 0 };
 
@@ -88,7 +90,6 @@ function Report() {
         }
       });
 
-      // Per-department average
       const deptAverages = Object.keys(MAX_SCORES).map((dept) => {
         const average =
           counts[dept] > 0 ? totals[dept] / counts[dept] : 0;
@@ -105,21 +106,55 @@ function Report() {
         }))
       );
 
-      // Overall average
-      const activeScores = deptAverages
-        .map((d) => d.avg)
-        .filter((v) => v > 0);
-      const overallAvg =
-        activeScores.length > 0
-          ? (activeScores.reduce((a, b) => a + b, 0) / activeScores.length).toFixed(2)
-          : null;
-      setAvgScore(overallAvg);
+      // ✅ NEW: Calculate overall average like quarterly — based on normalized per evaluation
+      const normalizedEvalAverages = vendorEvals.map((e) => {
+        const scores = Object.keys(MAX_SCORES)
+          .map((dept) => parseFloat(e.departmentScores.normalized[dept]))
+          .filter((val) => val > 0);
+        return scores.length > 0
+          ? scores.reduce((a, b) => a + b, 0) / scores.length
+          : 0;
+      });
 
-      // Find lowest scoring departments (below 60%)
+      const overallNormalizedAvg =
+        normalizedEvalAverages.length > 0
+          ? (
+              normalizedEvalAverages.reduce((a, b) => a + b, 0) /
+              normalizedEvalAverages.length
+            ).toFixed(2)
+          : null;
+
+      setAvgScore(overallNormalizedAvg);
+
       const low = deptAverages.filter((d) => d.avg > 0 && d.avg < 60);
       setLowestDepts(low);
 
-      // === Quarterly Average Chart ===
+      const bestDept = deptAverages.reduce(
+        (max, dept) => (dept.avg > max.avg ? dept : max),
+        { department: "", avg: 0 }
+      );
+
+      const weakestDept = deptAverages.reduce(
+        (min, dept) =>
+          dept.avg > 0 && (dept.avg < min.avg || min.avg === 0) ? dept : min,
+        { department: "", avg: 100 }
+      );
+
+      let summary = "";
+      const overall = parseFloat(overallNormalizedAvg);
+      if (overall >= 85) summary = "Excellent overall performance.";
+      else if (overall >= 70) summary = "Satisfactory performance with room to grow.";
+      else if (overall >= 50) summary = "Needs improvement.";
+      else summary = "Poor performance. Take corrective actions.";
+
+      setInsights({
+        totalEvals: vendorEvals.length,
+        bestDept,
+        weakestDept,
+        summary,
+      });
+
+      // Quarterly chart
       const quarterStats = {};
       vendorEvals.forEach((e) => {
         const date = new Date(e.createdAt);
@@ -127,10 +162,20 @@ function Report() {
           Math.floor(date.getMonth() / 3)
         ];
 
+        const normalizedScores = Object.keys(MAX_SCORES)
+          .map((dept) => parseFloat(e.departmentScores.normalized[dept]))
+          .filter((val) => val > 0);
+
+        const normalizedAvg =
+          normalizedScores.length > 0
+            ? normalizedScores.reduce((a, b) => a + b, 0) / normalizedScores.length
+            : 0;
+
         if (!quarterStats[quarter]) {
           quarterStats[quarter] = { sum: 0, count: 0 };
         }
-        quarterStats[quarter].sum += e.totalScore;
+
+        quarterStats[quarter].sum += normalizedAvg;
         quarterStats[quarter].count += 1;
       });
 
@@ -138,9 +183,7 @@ function Report() {
       const quarterAvgData = quarters.map((q) => ({
         quarter: q,
         avgScore: quarterStats[q]
-          ? parseFloat(
-              (quarterStats[q].sum / quarterStats[q].count).toFixed(2)
-            )
+          ? parseFloat((quarterStats[q].sum / quarterStats[q].count).toFixed(2))
           : 0,
       }));
 
@@ -154,8 +197,17 @@ function Report() {
     <div className="report-container">
       <h2 className="report-title">Report for: {vendorName}</h2>
 
-      {/* Quarterly Evaluation Scores */}
-      <div style={{ width: "100%", height: 300, marginBottom: "2rem" }}>
+      <div className="insights-box">
+        <h3 style={{ color: "#4F3795", marginBottom: "10px" }}>Vendor Insights</h3>
+        <ul>
+          <li><strong>Total Evaluations:</strong> {insights.totalEvals}</li>
+          <li><strong>Best Department:</strong> {insights.bestDept?.department?.toUpperCase()} ({insights.bestDept?.avg}%)</li>
+          <li><strong>Weakest Department:</strong> {insights.weakestDept?.department?.toUpperCase()} ({insights.weakestDept?.avg}%)</li>
+          <li><strong>Overall Summary:</strong> {insights.summary}</li>
+        </ul>
+      </div>
+
+      <div style={{ width: "100%", height: 200, marginBottom: "2rem" }}>
         <h3>Average Evaluation Score by Quarter</h3>
         <ResponsiveContainer>
           <BarChart data={quarterlyData}>
@@ -164,44 +216,44 @@ function Report() {
             <YAxis domain={[0, 100]} />
             <Tooltip />
             <Legend />
-            <Bar dataKey="avgScore" fill="#0088FE" name="Avg Score">
-              <LabelList dataKey="avgScore" position="top" formatter={(v) => `${v}%`} />
+            <Bar dataKey="avgScore" fill="#0088FE" name="Avg Score" barSize={20}>
+              <LabelList
+                dataKey="avgScore"
+                position="top"
+                formatter={(v) => `${v}%`}
+                style={{ fill: "#000", fontWeight: "bold" }}
+              />
             </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>
 
-      {/* Overall Average Bar */}
-      <div style={{ width: "100%", height: 200, marginBottom: "2rem" }}>
+      <div style={{ width: "100%", height: 180, marginBottom: "2rem" }}>
         <h3>Overall Average Score</h3>
         {avgScore ? (
           <ResponsiveContainer>
-            <BarChart
-              data={[{ vendorName: vendorName, avgScore: parseFloat(avgScore) }]}
-            >
+            <BarChart data={[{ vendorName, avgScore: parseFloat(avgScore) }]}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="vendorName" />
               <YAxis domain={[0, 100]} />
               <Tooltip />
               <Legend />
-              <Bar
-                dataKey="avgScore"
-                fill="#82ca9d"
-                name="Average Score"
-                barSize={50}
-                label={{ position: "top", formatter: (val) => `${val}%` }}
-              />
+              <Bar dataKey="avgScore" fill="#82ca9d" name="Average Score" barSize={20}>
+                <LabelList
+                  dataKey="avgScore"
+                  position="top"
+                  formatter={(v) => `${v}%`}
+                  style={{ fill: "#000", fontWeight: "bold" }}
+                />
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         ) : (
-          <p style={{ textAlign: "center", color: "#999" }}>
-            No average score available.
-          </p>
+          <p style={{ textAlign: "center", color: "#999" }}>No average score available.</p>
         )}
       </div>
 
-      {/* Department Breakdown */}
-      <div style={{ width: "100%", height: 250, marginBottom: "2rem" }}>
+      <div style={{ width: "100%", height: 200, marginBottom: "2rem" }}>
         <h3>Department-Wise Average Scores</h3>
         <ResponsiveContainer>
           <BarChart data={deptBarData}>
@@ -210,21 +262,22 @@ function Report() {
             <YAxis domain={[0, 100]} />
             <Tooltip />
             <Legend />
-            <Bar dataKey="avg" fill="#4F3795" name="Avg %" barSize={50}>
-              <LabelList dataKey="avg" position="top" formatter={(v) => `${v}%`} />
+            <Bar dataKey="avg" fill="#4F3795" name="Avg %" barSize={20}>
+              <LabelList
+                dataKey="avg"
+                position="top"
+                formatter={(v) => `${v}%`}
+                style={{ fill: "#000", fontWeight: "bold" }}
+              />
             </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>
 
-      {/* Department Weakness Analysis */}
       {lowestDepts.length > 0 && (
-        <div style={{ marginBottom: "2rem" }}>
+        <div>
           <h3>Department-Level Weaknesses</h3>
-          <p>
-            Despite an acceptable overall score, the following departments had
-            notably low average scores (below 60%):
-          </p>
+          <p>Departments with average scores below 60%:</p>
           <ul>
             {lowestDepts.map((d, i) => (
               <li key={i}>
@@ -235,7 +288,6 @@ function Report() {
         </div>
       )}
 
-      {/* Table */}
       <div className="report-table-wrapper">
         <table className="report-table">
           <thead>
@@ -252,16 +304,19 @@ function Report() {
               <tr key={index}>
                 <td>{item.evaluator}</td>
                 <td>
-                  {item.departmentScores.both} / {MAX_SCORES.both} (
-                  {item.departmentScores.normalized.both}%)
+                  {item.departmentScores.both > 0
+                    ? `${item.departmentScores.both} / ${MAX_SCORES.both} (${item.departmentScores.normalized.both}%)`
+                    : "Not their department"}
                 </td>
                 <td>
-                  {item.departmentScores.finance} / {MAX_SCORES.finance} (
-                  {item.departmentScores.normalized.finance}%)
+                  {item.departmentScores.finance > 0
+                    ? `${item.departmentScores.finance} / ${MAX_SCORES.finance} (${item.departmentScores.normalized.finance}%)`
+                    : "Not their department"}
                 </td>
                 <td>
-                  {item.departmentScores.IT} / {MAX_SCORES.IT} (
-                  {item.departmentScores.normalized.IT}%)
+                  {item.departmentScores.IT > 0
+                    ? `${item.departmentScores.IT} / ${MAX_SCORES.IT} (${item.departmentScores.normalized.IT}%)`
+                    : "Not their department"}
                 </td>
                 <td>{item.createdAt}</td>
               </tr>

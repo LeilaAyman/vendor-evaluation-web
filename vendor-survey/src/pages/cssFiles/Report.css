@@ -38,3 +38,6 @@
 .report-table tr:hover {
   background-color: #f0f0f0;
 }
+.recharts-wrapper {
+  overflow: visible !important;
+}
